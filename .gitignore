@@ -1,0 +1,8 @@
+#files and folders to ignore
+*.class
+*.log
+
+.idea/*
+.bsp/*
+target/*
+project/*
