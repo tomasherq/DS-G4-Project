@@ -1,5 +1,7 @@
 import scala.sys.exit
-import Messages.{Message}
+import Messages.Message
+
+import java.lang.Thread.sleep
 
 object Launcher {
 
@@ -62,6 +64,10 @@ object Launcher {
     // TODO Create a client or a broker based on type
     // Configure socket
     // Start the two threads
+    while(true) {
+      sleep(1000)
+      println("Waiting for some tasks, don't exit the program :)")
+    }
 
   }
 }
