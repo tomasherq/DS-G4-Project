@@ -1,9 +1,10 @@
-package nodes
+package Nodes
 
-import messages.{AdvertisementContent, Message}
+import Messages.{AdvertisementContent, Message}
+import Utilities.Subscription
 
 
-class subscriberNode(override val address:String,override val name:String,override val port:Int,override val receiverPort:Int) extends Node( address, name,  port, receiverPort) {
+class Subscriber(override val address:String, override val name:String, override val port:Int, override val receiverPort:Int) extends Node( address, name,  port, receiverPort) {
 
   // Keep the subscription we have
   private var subscriptionList:scala.collection.mutable.Map[String,Subscription]=scala.collection.mutable.Map[String,Subscription]()

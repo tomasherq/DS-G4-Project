@@ -1,4 +1,4 @@
-package messages
+package Messages
 
 
 /*
@@ -19,9 +19,6 @@ class SenderInfo(val id:String,var address:String,val port:Int)
 // We could think of having various receivers
 @SerialVersionUID(100L)
 class Message(val id:String,val senderInfo: SenderInfo,val messageType:Int,val receiverId:String,val content:Any, val timestamp:Int)
-
-
-
 
 // Can be used for unsubscription if type of message changed
 class SubscriberRequestContent(val advertisementID:String,val subscriberID:String)

@@ -1,11 +1,12 @@
-package nodes
+package Nodes
 
-import messages.{AdvertisementContent, Message}
+import Messages.{AdvertisementContent, Message}
+import Utilities.Advertisement
 
 import java.sql.{Date, Timestamp}
 
 
-class publisherNode(override val address:String,override val name:String,override val port:Int,override val receiverPort:Int) extends Node( address, name,  port, receiverPort) {
+class Publisher(override val address:String, override val name:String, override val port:Int, override val receiverPort:Int) extends Node( address, name,  port, receiverPort) {
 
 
   private var advertisementList=scala.collection.mutable.Map[String,Advertisement]()
