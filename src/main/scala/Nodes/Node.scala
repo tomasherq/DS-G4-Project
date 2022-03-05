@@ -2,21 +2,18 @@ package Nodes
 
 import Communication.{ReceiverSocket, SenderSocket}
 import Messages.{Message, SenderInfo}
-import Routing.RoutingEntry
 
-class Node(val address:String,val name:String, val port:Int,val receiverPort:Int) {
+abstract class Node(val address:String,val name:String, val port:Int,val receiverPort:Int) {
 
-   val senderInfo:SenderInfo = new SenderInfo(name,address,port)
-   val receiver:ReceiverSocket = new ReceiverSocket(senderInfo)
-   val sender:SenderSocket = new SenderSocket(senderInfo)
-   var routingTable = scala.collection.mutable.Map[String,RoutingEntry]()
-   val randomGenerator = scala.util.Random
+  val senderInfo: SenderInfo = new SenderInfo(name,address,port)
+  val receiver: ReceiverSocket = new ReceiverSocket(senderInfo)
+  val sender: SenderSocket = new SenderSocket(senderInfo)
+  val randomGenerator = scala.util.Random
 
   /**
    * Used in all classes to kep track of publications of an advertisement or messages sent
    */
    var counters = scala.collection.mutable.Map[String,Int]()
-
 
   /**
    * This list has to be accessed to see the historic, only remove if ACK sent
@@ -39,33 +36,6 @@ class Node(val address:String,val name:String, val port:Int,val receiverPort:Int
     date.getTime.toInt
   }
 
-  def addRoute(senderInfo: SenderInfo): Unit = {
-
-    routingTable += (senderInfo.id -> new RoutingEntry(senderInfo.address,senderInfo.port))
-
-  }
-  def deleteRoute(name:String): Unit = {
-    routingTable -= (name)
-  }
-
-  // There is no need for the structure to be like this
-
-  def sendAckResponse(): Unit = {
-    // TODO To be implemented
-  }
-
-  def receiveAckResponse(message: Message): Unit = {
-    // TODO To be implemented
-  }
-
-  def sendAckRequest(): Unit = {
-    // TODO To be implemented
-  }
-
-  def receiveAckRequest(message: Message): Unit = {
-    // TODO To be implemented
-  }
-
   // Maybe this method needs to be over rid by every class
   // Needs to be defined, I left the code I used to have to know how threads worked
   def execute(): Unit = {
@@ -74,5 +44,3 @@ class Node(val address:String,val name:String, val port:Int,val receiverPort:Int
     counters += ("Advertisements"->0)
   }
 }
-
-
