@@ -1,11 +1,11 @@
 import scala.sys.exit
-import Messages.Message
-
 import java.lang.Thread.sleep
+import scala.io.Source
 
 object Launcher {
 
-  val usage = """
+  private var nodeList = Map[Int, String]()
+  private val usage = """
   Usage: Launcher
     --type    client / broker
     --ID      num
@@ -16,6 +16,25 @@ object Launcher {
     In case of broker
       --nbrs  "num num ..."
   """
+
+  def parseNodeList() = {
+
+    val filename = "NodeList.txt"
+
+    nodeList = Source.fromResource(filename).getLines
+      .map(line => {
+        val Array(id,ip,_*) = line.split(' ')
+        id.toInt -> (ip) }).toMap
+
+  }
+
+  def getNodeList(): Map[Int, String] = nodeList
+
+  def configureSocket() = ???
+
+  def initializeNode() = ???
+
+  def startNode() = ???
 
   def main(args: Array[String]) = {
 
@@ -51,19 +70,23 @@ object Launcher {
       }
     }
 
+
     // Test argument parse
     println("Type: " + node_type)
     println("ID: " + node_ID)
     println("IP: " + IP_EB)
     println("Neighbours: " + neighbours)
 
-    // Test message
-    //val message : Message = new Message()
-    //message.printMessage
+    // Parse and print node list
+    parseNodeList()
+    println(getNodeList())
 
     // TODO Create a client or a broker based on type
-    // Configure socket
-    // Start the two threads
+    configureSocket()
+    initializeNode()
+    startNode()
+
+    // TODO Delete this loop when the actual nodes are initialized with tasks
     while(true) {
       sleep(1000)
       println("Waiting for some tasks, don't exit the program :)")
