@@ -25,7 +25,6 @@ object Launcher {
       .map(line => {
         val Array(id,ip,_*) = line.split(' ')
         id.toInt -> (ip) }).toMap
-
   }
 
   def getNodeList(): Map[Int, String] = nodeList
@@ -36,7 +35,7 @@ object Launcher {
 
   def startNode() = ???
 
-  def main(args: Array[String]) = {
+  def main(args: Array[String]): Unit = {
 
     // Parsing the cmd line arguments (we can use scopt either)
     if (args.length == 0) {
@@ -97,6 +96,5 @@ object Launcher {
       sleep(1000)
       println("Waiting for some tasks, don't exit the program :)")
     }
-
   }
 }

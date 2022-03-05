@@ -1,6 +1,5 @@
 package Messages
 
-
 /*
 * messageTypes
 * 1 == subscription
@@ -34,7 +33,3 @@ class PublicationContent(val content:String,val publicationID:String)
 
 // Same as a subscription, but you can send a timestamp instead --> Depending on the field we use a type or other
 class RequestPublicationMessage(val publicationID:String,val subscriberID:String,val timestamp:Int)
-
-
-
-
