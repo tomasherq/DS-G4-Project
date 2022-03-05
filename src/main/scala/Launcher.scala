@@ -5,6 +5,8 @@ import scala.io.Source
 object Launcher {
 
   private var nodeList = Map[Int, String]()
+  private var brokerNetwork = Map[Int, List[Int]]()
+
   private val usage = """
   Usage: Launcher
     --type    client or broker
@@ -27,9 +29,19 @@ object Launcher {
         id.toInt -> (ip) }).toMap
   }
 
+  def parseBrokerNetwork() = {
+
+    val filename = "BrokerNetwork.txt"
+
+    brokerNetwork = Source.fromResource(filename).getLines
+      .map(line => {
+        val entry = line.split(' ')
+        (entry.head.toInt, entry.tail.map(_.toInt).toList)}).toMap
+  }
+
   def getNodeList(): Map[Int, String] = nodeList
 
-  def configureSocket() = ???
+  def getBrokerNetwork(): Map[Int, List[Int]] = brokerNetwork
 
   def initializeNode() = ???
 
@@ -85,8 +97,14 @@ object Launcher {
     println("\nSuccesfully parsed Node List:")
     println(getNodeList())
 
+    // Parse Broker Network if instance is of type Broker
+    if (node_type == "broker") {
+      parseBrokerNetwork()
+      println("\nSuccesfully parsed Broker Network:")
+      println(getBrokerNetwork())
+    }
+
     // TODO Create a client or a broker based on type
-    configureSocket()
     initializeNode()
     startNode()
     println(s"\nSuccesfully initalized the Node $node_type $node_ID")
