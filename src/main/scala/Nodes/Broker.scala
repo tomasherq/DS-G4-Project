@@ -101,7 +101,6 @@ class Broker(override val address: String, override val ID: Int, override val po
         message.content match {
           case _ : Advertise => receiveAdvertisement(message)
         }
-
         receiver.emptyQueue() // Process the message, this should be individual
       }
     }

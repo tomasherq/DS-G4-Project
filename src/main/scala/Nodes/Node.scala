@@ -30,11 +30,11 @@ abstract class Node(val address: String, val ID: Int, val port: Int, val receive
     // TODO general method to send the actual message
   }
 
-  def getMessageId(): String = {
+  def getMessageID(): Int = {
     if(!counters.contains("message")) {
       counters += ("message"->0)
     }
-    ID+"-"+counters.get("message").toString
+    counters.get("message").get
   }
 
   // TODO Check if we can do this is a better way

@@ -5,9 +5,10 @@ import java.io.{ObjectInputStream, ObjectOutputStream}
 import java.net.InetSocketAddress
 import java.nio.channels.SocketChannel
 
-class SenderSocket(val SocketData: SocketData) {
+@SerialVersionUID(100L)
+class SenderSocket(val SocketData: SocketData) extends Serializable {
 
-  def sendMessage(messageToSend: Message, portReceiver: Int,  addressReceiver: String ): Message = {
+  def sendMessage(messageToSend: Message, addressReceiver: String, portReceiver: Int): Message = {
 
     val sChannel = SocketChannel.open
     sChannel.configureBlocking(true)

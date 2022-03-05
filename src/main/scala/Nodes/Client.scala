@@ -3,8 +3,6 @@ package Nodes
 import Messaging._
 import Nodes.ClientType.{ClientType, PUBLISHER, SUBSCRIBER}
 
-import java.net.BindException
-
 class Client(override val address: String, override val ID: Int, override val port: Int, override val receiverPort: Int, val brokerID: Int, val mode: ClientType) extends Node( address, ID,  port, receiverPort) {
 
   /**
@@ -23,10 +21,10 @@ class Client(override val address: String, override val ID: Int, override val po
     val content = new Advertise(adID)
 
     // TODO client should only send to known broker, the broker will use routing table
-    //routingTable.map(routeInfo=> {  // We send all the ads
-    //val message:Message = new Message(getMessageId(),SocketData,1,routeInfo._1,content,getCurrentTimestamp())
-    //sender.sendMessage(message,routeInfo._2.port,routeInfo._2.address)
-    //})
+    val routeInfo = ("192.168.1.85", 5000)
+    val message: Message = new Message(getMessageID(), SocketData, brokerID, content, getCurrentTimestamp())
+    sender.sendMessage(message, routeInfo._1, routeInfo._2)
+
     advertisementList += (adID -> advertisement)
     // TODO To be implemented
   }

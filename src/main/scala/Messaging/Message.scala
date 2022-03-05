@@ -7,4 +7,4 @@ class Message(val ID: Int,
               val SocketData: SocketData,
               val receiverID: Int,
               val content: Any,
-              val timestamp: Int)
+              val timestamp: Int) extends Serializable
