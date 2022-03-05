@@ -95,8 +95,10 @@ class Broker(override val address: String, override val ID: Int, override val po
 
     while (true) {
       Thread.sleep(1000)
+      println("Waiting for messages...")
 
       while (!receiver.isQueueEmpty) {
+        println("Parsing a new message...")
         val message = receiver.getFirstFromQueue()
 
         if(!routingTable.contains(message.SocketData.ID) ) {

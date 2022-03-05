@@ -2,10 +2,13 @@ import scala.sys.exit
 import java.lang.Thread.sleep
 import scala.io.Source
 
-object Launcher {
+import Nodes._
+
+object Launcher extends Thread {
 
   private var nodeList = Map[Int, String]()
   private var brokerNetwork = Map[Int, List[Int]]()
+  private var port = 5000
 
   private val usage = """
   Usage: Launcher
@@ -14,9 +17,6 @@ object Launcher {
 
     In case of client:
       --BID   ID of edge broker
-
-    In case of broker
-      --nbrs  "num num ..."
   """
 
   def parseNodeList() = {
@@ -43,9 +43,17 @@ object Launcher {
 
   def getBrokerNetwork(): Map[Int, List[Int]] = brokerNetwork
 
-  def initializeNode() = ???
+  def initializeNode(node_type: String, node_ID: Int, broker_ID: Int) = {
+    if (node_type == "client") {
+      new Client(nodeList(node_ID), node_ID, port, port+1)
+    } else {
+      new Broker(nodeList(node_ID), node_ID, port, port+1)
+    }
+  }
 
-  def startNode() = ???
+  def startNode(node: Node) = {
+    node.execute()
+  }
 
   def main(args: Array[String]): Unit = {
 
@@ -59,7 +67,6 @@ object Launcher {
     var node_type = ""
     var node_ID = 0
     var broker_ID = 0
-    var neighbours : List[String] = List()
 
     while(arglist.nonEmpty) {
       arglist match {
@@ -77,9 +84,6 @@ object Launcher {
         case "--BID" :: value :: tail =>
           broker_ID = value.toInt
           arglist = tail
-        case "--nbrs" :: value :: tail =>
-          neighbours = value.split(' ').toList
-          arglist = tail
         case option =>
           println("Unknown option " + option)
           exit(1)
@@ -90,7 +94,7 @@ object Launcher {
     println("Succesfully initalized Launcher with the following start-up parameters:")
     println("Type: " + node_type)
     println("ID: " + node_ID)
-    if (node_type == "client") println("BID: " + broker_ID) else println("Neighbours: " + neighbours)
+    if (node_type == "client") println("BID: " + broker_ID)
 
     // Parse and print node list
     parseNodeList()
@@ -104,9 +108,8 @@ object Launcher {
       println(getBrokerNetwork())
     }
 
-    // TODO Create a client or a broker based on type
-    initializeNode()
-    startNode()
+    val node = initializeNode(node_type, node_ID, broker_ID)
+    startNode(node)
     println(s"\nSuccesfully initalized the Node $node_type $node_ID")
 
     // TODO Delete this loop when the actual nodes are initialized with tasks

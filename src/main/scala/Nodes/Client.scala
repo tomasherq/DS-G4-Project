@@ -82,8 +82,10 @@ class Client(override val address: String, override val ID: Int, override val po
 
     while (true) {
       Thread.sleep(1000)
+      println("Waiting for messages...")
 
       while (!receiver.isQueueEmpty) {
+        println("Parsing a new message...")
         val message = receiver.getFirstFromQueue()
 
         // TODO routing table is only known to broker, keep a separate lists of known brokers.
