@@ -10,7 +10,6 @@ class Advertisement(val ID: Int,
 
 class Publication(val content: Any, val timestamp: Int) // The id is defined in the advertisement
 
-
 /** Subscriber
 * Keep the record of all ads and just if we are subscribed or not
 * Keep the last publication received or a whole list?

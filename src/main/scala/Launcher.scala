@@ -21,17 +21,17 @@ object Launcher extends Thread {
       --mode  publisher or subscriber
   """
 
-  def parseNodeList() = {
+  def parseNodeList(): Unit  = {
 
     val filename = "NodeList.txt"
 
     nodeList = Source.fromResource(filename).getLines
       .map(line => {
         val Array(id,ip,_*) = line.split(' ')
-        id.toInt -> (ip) }).toMap
+        id.toInt -> ip }).toMap
   }
 
-  def parseBrokerNetwork() = {
+  def parseBrokerNetwork(): Unit  = {
 
     val filename = "BrokerNetwork.txt"
 
@@ -45,7 +45,7 @@ object Launcher extends Thread {
 
   def getBrokerNetwork(): Map[Int, List[Int]] = brokerNetwork
 
-  def initializeNode(node_type: String, node_ID: Int, broker_ID: Int, node_mode: ClientType) = {
+  def initializeNode(node_type: String, node_ID: Int, broker_ID: Int, node_mode: ClientType): Node = {
     if (node_type == "client") {
       new Client(nodeList(node_ID), node_ID, port, port+1, broker_ID, node_mode)
     } else {
@@ -53,7 +53,7 @@ object Launcher extends Thread {
     }
   }
 
-  def startNode(node: Node) = {
+  def startNode(node: Node): Unit = {
     node.execute()
   }
 
@@ -102,25 +102,25 @@ object Launcher extends Thread {
     }
 
     // Test argument parse
-    println("Succesfully initalized Launcher with the following start-up parameters:")
+    println("Successfully initialized Launcher with the following start-up parameters:")
     println("Type: " + node_type)
     println("ID: " + node_ID)
     if (node_type == "client") println("BID: " + broker_ID + "\nMode: " + node_mode)
 
     // Parse and print node list
     parseNodeList()
-    println("\nSuccesfully parsed Node List:")
+    println("\nSuccessfully parsed Node List:")
     println(getNodeList())
 
     // Parse Broker Network if instance is of type Broker
     if (node_type == "broker") {
       parseBrokerNetwork()
-      println("\nSuccesfully parsed Broker Network:")
+      println("\nSuccessfully parsed Broker Network:")
       println(getBrokerNetwork())
     }
 
     val node = initializeNode(node_type, node_ID, broker_ID, node_mode)
     startNode(node)
-    println(s"\nSuccesfully initalized the Node $node_type $node_ID")
+    println(s"\nSuccessfully initialized the Node $node_type $node_ID")
   }
 }

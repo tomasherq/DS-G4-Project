@@ -3,6 +3,8 @@ package Nodes
 import Messaging._
 import Nodes.ClientType.{ClientType, PUBLISHER, SUBSCRIBER}
 
+import java.net.BindException
+
 class Client(override val address: String, override val ID: Int, override val port: Int, override val receiverPort: Int, val brokerID: Int, val mode: ClientType) extends Node( address, ID,  port, receiverPort) {
 
   /**
@@ -21,14 +23,11 @@ class Client(override val address: String, override val ID: Int, override val po
     val content = new Advertise(adID)
 
     // TODO client should only send to known broker, the broker will use routing table
-
     //routingTable.map(routeInfo=> {  // We send all the ads
     //val message:Message = new Message(getMessageId(),SocketData,1,routeInfo._1,content,getCurrentTimestamp())
     //sender.sendMessage(message,routeInfo._2.port,routeInfo._2.address)
     //})
-
     advertisementList += (adID -> advertisement)
-
     // TODO To be implemented
   }
 
@@ -80,14 +79,37 @@ class Client(override val address: String, override val ID: Int, override val po
     // TODO To be implemented
   }
 
+  private def simulateClientBehaviour(): Unit = {
+    val option = randomGenerator.nextInt(100)
+    /**
+     * Simulate random publisher behaviour
+     */
+    if (mode == PUBLISHER) {
+      option match {
+        case x if x > 0 && x <= 19 => sendAdvertisement()
+        case 20 => sendUnadvertisement()
+        case x if x > 20 && x <= 29 => sendPublication()
+        case 30 => sendAckRequest()
+        case _ =>
+      }
+    }
+    /**
+     * Simulate random subscriber behaviour
+     */
+    if (mode == SUBSCRIBER) {
+      option match {
+        case _ =>
+      }
+    }
+  }
+
   /**
    * Open ReceiverSocket and actively listen for messages.
    * Simulate random Client Pub/Sub behaviour.
    */
   override def execute(): Unit = {
     super.execute()
-    val t = new Thread(receiver)
-    t.start()
+    super.startReceiver()
 
     while (true) {
       Thread.sleep(1000)
@@ -97,44 +119,14 @@ class Client(override val address: String, override val ID: Int, override val po
         println("Parsing a new message...")
         val message = receiver.getFirstFromQueue()
 
-        // TODO routing table is only known to broker, a client only knows 1 broker.
-        //if(!routingTable.contains(message.SocketData.id) ) {
-        //addRoute(message.SocketData)
-        //}
-
         // TODO define all types
         message.content match {
           case _ : AckResponse => receiveAckResponse(message)
           case _ : Publication => receivePublication(message)
         }
-
         receiver.emptyQueue() // Process the message, this should be individual
       }
-
-      val option = randomGenerator.nextInt(100)
-
-      /**
-       * Simulate random publisher behaviour
-       */
-      if (mode == PUBLISHER) {
-        option match {
-          case x if (x > 0 && x <= 19) => sendAdvertisement()
-          case 20 => sendUnadvertisement()
-          case x if (x > 20 && x <= 29) => sendPublication()
-          case 30 => sendAckRequest()
-          case _ =>
-        }
-      }
-
-      /**
-       * Simulate random subscriber behaviour
-       */
-      if (mode == SUBSCRIBER) {
-        option match {
-          case _ =>
-        }
-      }
-
+      simulateClientBehaviour()
     }
   }
 }

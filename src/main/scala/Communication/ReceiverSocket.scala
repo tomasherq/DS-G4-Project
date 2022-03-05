@@ -1,6 +1,7 @@
 package Communication
 
-import Messaging.{Message}
+import Messaging.Message
+
 import java.io.ObjectInputStream
 import java.net.InetSocketAddress
 import java.nio.channels.ServerSocketChannel
@@ -25,6 +26,7 @@ class ReceiverSocket(val SocketData: SocketData) extends Thread {
   override def run(): Unit = {
     val socketChannelReceiver = ServerSocketChannel.open
     socketChannelReceiver.configureBlocking(true)
+
     socketChannelReceiver.socket.bind(new InetSocketAddress(SocketData.address,SocketData.port))
 
     while (true) {

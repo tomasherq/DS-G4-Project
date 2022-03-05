@@ -1,6 +1,6 @@
 package Communication
 
-import Messaging.{Message}
+import Messaging.Message
 import java.io.{ObjectInputStream, ObjectOutputStream}
 import java.net.InetSocketAddress
 import java.nio.channels.SocketChannel

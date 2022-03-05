@@ -11,13 +11,12 @@ class Broker(override val address: String, override val ID: Int, override val po
   private val subscriberList = scala.collection.mutable.Map[Int, Advertisement]()
 
   private val SRT = new RoutingTable()
-  // TODO needed datastructures
-  // PRT : RoutingTable
-  // NB: overlay neighbours (from file BrokenNetwork)
-  // Acks : Hashmap, per msg and per link. Store all received acks.
-  // Groups: List of all known groups by this broker
-  // IsActive: HashMap<Integer, Bool>, AdvertiseID: Int, isActive: Bool
-  // StoredPubs: HashMap<Integer, List<Integer>>: Stores per publisher a list of publications.
+  private val PRT = new RoutingTable()
+  private val NB = neighbours
+  private val ACKS = scala.collection.mutable.Map[(Int, Int), List[Int]]() //Tuple is (msg, link) -> List of acks
+  private val Groups = List[Int]()
+  private val IsActive = scala.collection.mutable.Map[Int, Boolean]() // AdvertisementID
+  private val StoredPubs = scala.collection.mutable.Map[Int, List[Int]]() // PublisherID -> list of publications
 
   /**
    * This method will lookup a candidate edge broker that can reach the client if this broker is not its edge broker
@@ -44,7 +43,7 @@ class Broker(override val address: String, override val ID: Int, override val po
     val content:Advertise = message.content.asInstanceOf[Advertise]
 
     if(subscriptionList.contains(content.advertisementID)) {
-      subscriptionList -= (content.advertisementID)
+      subscriptionList -= content.advertisementID
     }
   }
 
@@ -84,9 +83,7 @@ class Broker(override val address: String, override val ID: Int, override val po
 
   override def execute(): Unit = {
     super.execute()
-
-    val t = new Thread(receiver)
-    t.start()
+    super.startReceiver()
 
     while (true) {
       Thread.sleep(1000)
@@ -105,7 +102,7 @@ class Broker(override val address: String, override val ID: Int, override val po
           case _ : Advertise => receiveAdvertisement(message)
         }
 
-        receiver.emptyQueue // Process the message, this should be individual
+        receiver.emptyQueue() // Process the message, this should be individual
       }
     }
   }

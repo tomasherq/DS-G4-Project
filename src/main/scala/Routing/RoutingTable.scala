@@ -21,7 +21,7 @@ class RoutingTable {
   }
 
   def deleteRoute(ID: Int): Unit = {
-    table -= (ID)
+    table -= ID
   }
 
 }
