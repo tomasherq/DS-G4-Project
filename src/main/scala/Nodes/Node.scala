@@ -2,7 +2,7 @@ package Nodes
 
 import Communication.{ReceiverSocket, SenderSocket}
 import Messages.{Message, SenderInfo}
-import Utilities.RoutingEntry
+import Routing.RoutingEntry
 
 class Node(val address:String,val name:String, val port:Int,val receiverPort:Int) {
 
