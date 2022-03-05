@@ -33,8 +33,8 @@ abstract class Node(val address: String, val ID: Int, val port: Int, val receive
     ID+"-"+counters.get("message").toString
   }
 
+  // TODO Check if we can do this is a better way
   def getCurrentTimestamp(): Int = {
-    // Probably not best way to do this tbh
     implicit def date2timestamp(date: java.util.Date) = new java.sql.Timestamp(date.getTime)
     val date = new java.util.Date
     date.getTime.toInt

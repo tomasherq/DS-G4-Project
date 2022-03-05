@@ -1,20 +1,21 @@
 package Nodes
 
-import Messaging._;
+import Messaging._
+import Nodes.ClientType.{ClientType, PUBLISHER, SUBSCRIBER}
 
-class Client(override val address: String, override val ID: Int, override val port: Int, override val receiverPort: Int) extends Node( address, ID,  port, receiverPort) {
+class Client(override val address: String, override val ID: Int, override val port: Int, override val receiverPort: Int, val brokerID: Int, val mode: ClientType) extends Node( address, ID,  port, receiverPort) {
 
   /**
    * Keep track of the advertisements and subscriptions the client created
    */
-  private var subscriptionList = scala.collection.mutable.Map[Int, Subscription]()
-  private var advertisementList = scala.collection.mutable.Map[Int, Advertisement]()
+  private val subscriptionList = scala.collection.mutable.Map[Int, Subscription]()
+  private val advertisementList = scala.collection.mutable.Map[Int, Advertisement]()
 
   /**
    * Advertisement methods
    */
   def sendAdvertisement(): Unit = {
-
+    println("Sending Advertisement")
     val adID: Int = ID + counters.get("Advertisements").get
     val advertisement = new Advertisement(adID)
     val content = new Advertise(adID)
@@ -32,6 +33,7 @@ class Client(override val address: String, override val ID: Int, override val po
   }
 
   def sendUnadvertisement(): Unit = {
+    println("Sending Unadvertisement")
     // TODO To be implemented
   }
 
@@ -39,9 +41,11 @@ class Client(override val address: String, override val ID: Int, override val po
    * Subscription methods
    */
   def sendSubscription(): Unit = {
+    println("Sending Subscription")
     // TODO To be implemented
   }
   def sendUnsubscription(): Unit = {
+    println("Sending Unsubscription")
     // TODO To be implemented
   }
 
@@ -49,14 +53,17 @@ class Client(override val address: String, override val ID: Int, override val po
    * Publication methods
    */
   def sendPublication(): Unit = {
+    println("Sending Publication")
     // TODO To be implemented
   }
 
   def receivePublication(message: Message): Unit = {
+    println("Receiving Publication")
     // TODO To be implemented
   }
 
   def requestPublication(): Unit = {
+    println("Requesting Publication")
     // TODO To be implemented
   }
 
@@ -64,10 +71,12 @@ class Client(override val address: String, override val ID: Int, override val po
    * Ack methods
    */
   def receiveAckResponse(message: Message): Unit = {
+    println("Receiving Ack Response")
     // TODO To be implemented
   }
 
   def sendAckRequest(): Unit = {
+    println("Sending Ack Request")
     // TODO To be implemented
   }
 
@@ -88,7 +97,7 @@ class Client(override val address: String, override val ID: Int, override val po
         println("Parsing a new message...")
         val message = receiver.getFirstFromQueue()
 
-        // TODO routing table is only known to broker, keep a separate lists of known brokers.
+        // TODO routing table is only known to broker, a client only knows 1 broker.
         //if(!routingTable.contains(message.SocketData.id) ) {
         //addRoute(message.SocketData)
         //}
@@ -99,21 +108,33 @@ class Client(override val address: String, override val ID: Int, override val po
           case _ : Publication => receivePublication(message)
         }
 
-        receiver.emptyQueue // Process the message, this should be individual
+        receiver.emptyQueue() // Process the message, this should be individual
       }
 
       val option = randomGenerator.nextInt(100)
 
       /**
-       * Simulate random client behaviour
+       * Simulate random publisher behaviour
        */
-      option match{
-        case x if (x>0 && x<=19) => sendAdvertisement()
-        case 20 => sendUnadvertisement()
-        case x if (x>20 && x<=29) => sendPublication()
-        case 30 => sendAckRequest()
-        case _ =>
+      if (mode == PUBLISHER) {
+        option match {
+          case x if (x > 0 && x <= 19) => sendAdvertisement()
+          case 20 => sendUnadvertisement()
+          case x if (x > 20 && x <= 29) => sendPublication()
+          case 30 => sendAckRequest()
+          case _ =>
+        }
       }
+
+      /**
+       * Simulate random subscriber behaviour
+       */
+      if (mode == SUBSCRIBER) {
+        option match {
+          case _ =>
+        }
+      }
+
     }
   }
 }

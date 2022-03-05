@@ -1,18 +1,17 @@
 package Nodes
 
 import Messaging._
-import Routing.RoutingEntry
+import Routing.RoutingTable
 
-class Broker(override val address: String, override val ID: Int, override val port: Int, override val receiverPort: Int) extends Node( address, ID,  port, receiverPort) {
-
+class Broker(override val address: String, override val ID: Int, override val port: Int, override val receiverPort: Int, val neighbours: List[Int]) extends Node( address, ID,  port, receiverPort) {
 
   // TODO may need to be changed, see needed datastructures
-  private var subscriptionList = scala.collection.mutable.Map[Int, Subscription]()
-  private var advertisementList = scala.collection.mutable.Map[Int, Advertisement]()
-  private var subscriberList = scala.collection.mutable.Map[Int, Advertisement]()
+  private val subscriptionList = scala.collection.mutable.Map[Int, Subscription]()
+  private val advertisementList = scala.collection.mutable.Map[Int, Advertisement]()
+  private val subscriberList = scala.collection.mutable.Map[Int, Advertisement]()
 
+  private val SRT = new RoutingTable()
   // TODO needed datastructures
-  // SRT : RoutingTable
   // PRT : RoutingTable
   // NB: overlay neighbours (from file BrokenNetwork)
   // Acks : Hashmap, per msg and per link. Store all received acks.
@@ -20,30 +19,19 @@ class Broker(override val address: String, override val ID: Int, override val po
   // IsActive: HashMap<Integer, Bool>, AdvertiseID: Int, isActive: Bool
   // StoredPubs: HashMap<Integer, List<Integer>>: Stores per publisher a list of publications.
 
-  // TODO change to instance of RoutingTable with RoutingEntry elements
-  var routingTable = scala.collection.mutable.Map[Int, RoutingEntry]()
-
   /**
    * This method will lookup a candidate edge broker that can reach the client if this broker is not its edge broker
    */
   def forwardMessage(): Unit = {
+    println("Forwarding Message")
     // TODO To implement
   }
-
-  /**
-   * TODO Routing table method wrappers
-   */
-//  def addRoute(SocketData: SocketData): Unit = {
-//    routingTable += (SocketData.id -> new RoutingEntry(SocketData.address,SocketData.port))
-//  }
-//  def deleteRoute(name:String): Unit = {
-//    routingTable -= (name)
-//  }
 
   /**
    * Advertisement methods
    */
   def receiveAdvertisement(message: Message): Unit = {
+    println("Receiving Advertisement")
 
     val content:Advertise=message.content.asInstanceOf[Advertise]
 
@@ -52,6 +40,7 @@ class Broker(override val address: String, override val ID: Int, override val po
     }
   }
   def receiveUnadvertisement(message: Message): Unit = {
+    println("Receiving Unadvertisement")
     val content:Advertise = message.content.asInstanceOf[Advertise]
 
     if(subscriptionList.contains(content.advertisementID)) {
@@ -63,10 +52,12 @@ class Broker(override val address: String, override val ID: Int, override val po
    *  Subscription methods
    */
   def receiveSubscription(message: Message): Unit = {
+    println("Receiving Subscription")
     // TODO To be implemented
   }
 
   def receiveUnsubscription(message: Message): Unit = {
+    println("Receiving Unsubscription")
     // TODO To be implemented
   }
 
@@ -74,6 +65,7 @@ class Broker(override val address: String, override val ID: Int, override val po
    * Publication methods
    */
   def receivePubRequest(message: Message): Unit = {
+    println("Receiving Publish Request")
     // TODO To be implemented
   }
 
@@ -81,15 +73,18 @@ class Broker(override val address: String, override val ID: Int, override val po
    * Ack methods
    */
   def sendAckResponse(): Unit = {
+    println("Sending Ack Response")
     // TODO To be implemented
   }
 
   def receiveAckRequest(message: Message): Unit = {
+    println("Sending Ack Request")
     // TODO To be implemented
   }
 
   override def execute(): Unit = {
     super.execute()
+
     val t = new Thread(receiver)
     t.start()
 
@@ -101,8 +96,8 @@ class Broker(override val address: String, override val ID: Int, override val po
         println("Parsing a new message...")
         val message = receiver.getFirstFromQueue()
 
-        if(!routingTable.contains(message.SocketData.ID) ) {
-          //addRoute(message.SocketData)
+        if(SRT.hasRoute(message.SocketData.ID) ) {
+          SRT.addRoute(message.SocketData)
         }
 
         // TODO define all types

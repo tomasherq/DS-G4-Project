@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="LaunchClient.jar" type="JarApplication" singleton="false">
     <option name="JAR_PATH" value="$PROJECT_DIR$/target/DS-Project-V1.0.0-jar-with-dependencies.jar" />
-    <option name="PROGRAM_PARAMETERS" value="--type client --ID 1 --BID 2" />
+    <option name="PROGRAM_PARAMETERS" value="--type client --ID 1 --BID 2 --mode publisher" />
     <option name="ALTERNATIVE_JRE_PATH" />
     <method v="2" />
   </configuration>

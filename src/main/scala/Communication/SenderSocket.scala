@@ -21,6 +21,7 @@ class SenderSocket(val SocketData: SocketData) {
 
       oos.close()
       ois.close()
+
       return s
     }
     messageToSend

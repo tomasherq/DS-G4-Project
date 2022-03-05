@@ -19,7 +19,7 @@ class ReceiverSocket(val SocketData: SocketData) extends Thread {
   }
 
   def emptyQueue(): Unit = {
-    messageQueue= mutable.Queue[Message]()
+    messageQueue = mutable.Queue[Message]()
   }
 
   override def run(): Unit = {
@@ -33,7 +33,8 @@ class ReceiverSocket(val SocketData: SocketData) extends Thread {
       val messageReceived = ois.readObject.asInstanceOf[Message]
 
       messageQueue.enqueue(messageReceived)
-      // I don't know if we need this
+
+      // TODO find out if we need this
       Thread.sleep(10)
     }
   }
