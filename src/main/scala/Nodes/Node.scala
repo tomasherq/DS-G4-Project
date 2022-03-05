@@ -1,32 +1,36 @@
 package Nodes
 
-import Communication.{ReceiverSocket, SenderSocket}
-import Messages.{Message, SenderInfo}
+import Communication.{ReceiverSocket, SenderSocket, SocketData}
+import Messaging.Message
 
-abstract class Node(val address:String,val name:String, val port:Int,val receiverPort:Int) {
+abstract class Node(val address: String, val ID: Int, val port: Int, val receiverPort: Int) {
 
-  val senderInfo: SenderInfo = new SenderInfo(name,address,port)
-  val receiver: ReceiverSocket = new ReceiverSocket(senderInfo)
-  val sender: SenderSocket = new SenderSocket(senderInfo)
+  val SocketData: SocketData = new SocketData(ID, address, port)
+  val receiver: ReceiverSocket = new ReceiverSocket(SocketData)
+  val sender: SenderSocket = new SenderSocket(SocketData)
   val randomGenerator = scala.util.Random
 
   /**
    * Used in all classes to kep track of publications of an advertisement or messages sent
    */
-   var counters = scala.collection.mutable.Map[String,Int]()
+   var counters = scala.collection.mutable.Map[String, Int]()
 
   /**
    * This list has to be accessed to see the historic, only remove if ACK sent
    * We have a list of the ones we sent and received
    */
-  private var messagesSent = scala.collection.mutable.Map[String,Message]()
-  private var messagesReceived = scala.collection.mutable.Map[String,Message]()
+  private var messagesSent = scala.collection.mutable.Map[Int, Message]()
+  private var messagesReceived = scala.collection.mutable.Map[Int, Message]()
+
+  def sendMessage(message: Message): Unit = {
+    // TODO general method to send the actual message
+  }
 
   def getMessageId(): String = {
     if(!counters.contains("message")) {
       counters += ("message"->0)
     }
-    name+"-"+counters.get("message").toString
+    ID+"-"+counters.get("message").toString
   }
 
   def getCurrentTimestamp(): Int = {
@@ -36,8 +40,7 @@ abstract class Node(val address:String,val name:String, val port:Int,val receive
     date.getTime.toInt
   }
 
-  // Maybe this method needs to be over rid by every class
-  // Needs to be defined, I left the code I used to have to know how threads worked
+  // TODO Needs to be overriden, need to factor out the seed as static Node field
   def execute(): Unit = {
     // We have to develop a method to make this seed always the same so we can perform experiments
     randomGenerator.setSeed(100)

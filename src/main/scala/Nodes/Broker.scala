@@ -1,17 +1,27 @@
 package Nodes
 
-import Messages.{AdvertisementContent, Message, SenderInfo}
+import Messaging._
 import Routing.RoutingEntry
-import Utilities.{Advertisement, Subscription}
 
-class Broker(override val address:String, override val name:String, override val port:Int, override val receiverPort:Int) extends Node( address, name,  port, receiverPort) {
+class Broker(override val address: String, override val ID: Int, override val port: Int, override val receiverPort: Int) extends Node( address, ID,  port, receiverPort) {
 
-  private var subscriptionList:scala.collection.mutable.Map[String,Subscription] = scala.collection.mutable.Map[String,Subscription]()
-  private var advertisementList = scala.collection.mutable.Map[String,Advertisement]()
-  private var subscriberList = scala.collection.mutable.Map[String,Advertisement]()
+
+  // TODO may need to be changed, see needed datastructures
+  private var subscriptionList = scala.collection.mutable.Map[Int, Subscription]()
+  private var advertisementList = scala.collection.mutable.Map[Int, Advertisement]()
+  private var subscriberList = scala.collection.mutable.Map[Int, Advertisement]()
+
+  // TODO needed datastructures
+  // SRT : RoutingTable
+  // PRT : RoutingTable
+  // NB: overlay neighbours (from file BrokenNetwork)
+  // Acks : Hashmap, per msg and per link. Store all received acks.
+  // Groups: List of all known groups by this broker
+  // IsActive: HashMap<Integer, Bool>, AdvertiseID: Int, isActive: Bool
+  // StoredPubs: HashMap<Integer, List<Integer>>: Stores per publisher a list of publications.
 
   // TODO change to instance of RoutingTable with RoutingEntry elements
-  var routingTable = scala.collection.mutable.Map[String,RoutingEntry]()
+  var routingTable = scala.collection.mutable.Map[Int, RoutingEntry]()
 
   /**
    * This method will lookup a candidate edge broker that can reach the client if this broker is not its edge broker
@@ -23,26 +33,26 @@ class Broker(override val address:String, override val name:String, override val
   /**
    * TODO Routing table method wrappers
    */
-  def addRoute(senderInfo: SenderInfo): Unit = {
-    routingTable += (senderInfo.id -> new RoutingEntry(senderInfo.address,senderInfo.port))
-  }
-  def deleteRoute(name:String): Unit = {
-    routingTable -= (name)
-  }
+//  def addRoute(SocketData: SocketData): Unit = {
+//    routingTable += (SocketData.id -> new RoutingEntry(SocketData.address,SocketData.port))
+//  }
+//  def deleteRoute(name:String): Unit = {
+//    routingTable -= (name)
+//  }
 
   /**
    * Advertisement methods
    */
   def receiveAdvertisement(message: Message): Unit = {
 
-    val content:AdvertisementContent=message.content.asInstanceOf[AdvertisementContent]
+    val content:Advertise=message.content.asInstanceOf[Advertise]
 
     if(!subscriptionList.contains(content.advertisementID)) {
-      subscriptionList += (content.advertisementID -> new Subscription(message.senderInfo.id))
+      subscriptionList += (content.advertisementID -> new Subscription(message.SocketData.ID))
     }
   }
   def receiveUnadvertisement(message: Message): Unit = {
-    val content:AdvertisementContent = message.content.asInstanceOf[AdvertisementContent]
+    val content:Advertise = message.content.asInstanceOf[Advertise]
 
     if(subscriptionList.contains(content.advertisementID)) {
       subscriptionList -= (content.advertisementID)
@@ -89,13 +99,13 @@ class Broker(override val address:String, override val name:String, override val
       while (!receiver.isQueueEmpty) {
         val message = receiver.getFirstFromQueue()
 
-        if(!routingTable.contains(message.senderInfo.id) ) {
-          addRoute(message.senderInfo)
+        if(!routingTable.contains(message.SocketData.ID) ) {
+          //addRoute(message.SocketData)
         }
 
-        message.messageType match {
-          case 3 => receiveAdvertisement(message)
-          // TODO add other cases
+        // TODO define all types
+        message.content match {
+          case _ : Advertise => receiveAdvertisement(message)
         }
 
         receiver.emptyQueue // Process the message, this should be individual

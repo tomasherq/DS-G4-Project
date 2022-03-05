@@ -1,12 +1,13 @@
 package Communication
 
-import Messages.{Message, SenderInfo}
+import Messaging.{Message}
 import java.io.{ObjectInputStream, ObjectOutputStream}
 import java.net.InetSocketAddress
 import java.nio.channels.SocketChannel
 
-class SenderSocket(val senderInfo: SenderInfo ) {
-  def sendMessage( messageToSend:Message,portReceiver: Int,  addressReceiver:String ): Message = {
+class SenderSocket(val SocketData: SocketData) {
+
+  def sendMessage(messageToSend: Message, portReceiver: Int,  addressReceiver: String ): Message = {
 
     val sChannel = SocketChannel.open
     sChannel.configureBlocking(true)

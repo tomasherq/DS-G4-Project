@@ -1,36 +1,34 @@
 package Nodes
 
-import Messages.{AdvertisementContent, Message}
-import Utilities.{Advertisement, Subscription}
+import Messaging._;
 
-class Client(override val address:String, override val name:String, override val port:Int, override val receiverPort:Int) extends Node( address, name,  port, receiverPort) {
+class Client(override val address: String, override val ID: Int, override val port: Int, override val receiverPort: Int) extends Node( address, ID,  port, receiverPort) {
 
   /**
    * Keep track of the advertisements and subscriptions the client created
    */
-  private var subscriptionList:scala.collection.mutable.Map[String,Subscription] = scala.collection.mutable.Map[String,Subscription]()
-  private var advertisementList = scala.collection.mutable.Map[String,Advertisement]()
+  private var subscriptionList = scala.collection.mutable.Map[Int, Subscription]()
+  private var advertisementList = scala.collection.mutable.Map[Int, Advertisement]()
 
   /**
    * Advertisement methods
    */
   def sendAdvertisement(): Unit = {
 
-    val adId = name + counters.get("Advertisements").toString
-    val advertisement = new Advertisement(adId)
-    val content = new AdvertisementContent(adId)
+    val adID: Int = ID + counters.get("Advertisements").get
+    val advertisement = new Advertisement(adID)
+    val content = new Advertise(adID)
 
     // TODO client should only send to known broker, the broker will use routing table
 
     //routingTable.map(routeInfo=> {  // We send all the ads
-    //val message:Message = new Message(getMessageId(),senderInfo,1,routeInfo._1,content,getCurrentTimestamp())
+    //val message:Message = new Message(getMessageId(),SocketData,1,routeInfo._1,content,getCurrentTimestamp())
     //sender.sendMessage(message,routeInfo._2.port,routeInfo._2.address)
     //})
 
-    advertisementList += (adId->advertisement)
+    advertisementList += (adID -> advertisement)
 
     // TODO To be implemented
-
   }
 
   def sendUnadvertisement(): Unit = {
@@ -89,14 +87,14 @@ class Client(override val address:String, override val name:String, override val
         val message = receiver.getFirstFromQueue()
 
         // TODO routing table is only known to broker, keep a separate lists of known brokers.
-        //if(!routingTable.contains(message.senderInfo.id) ) {
-        //addRoute(message.senderInfo)
+        //if(!routingTable.contains(message.SocketData.id) ) {
+        //addRoute(message.SocketData)
         //}
 
-        message.messageType match {
-          case 6 => receiveAckResponse(message)
-          case 7 => receivePublication(message)
-          case 8 => receiveAckResponse(message)
+        // TODO define all types
+        message.content match {
+          case _ : AckResponse => receiveAckResponse(message)
+          case _ : Publication => receivePublication(message)
         }
 
         receiver.emptyQueue // Process the message, this should be individual

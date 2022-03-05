@@ -1,12 +1,12 @@
 package Communication
 
-import Messages.{Message, SenderInfo}
+import Messaging.{Message}
 import java.io.ObjectInputStream
 import java.net.InetSocketAddress
 import java.nio.channels.ServerSocketChannel
 import scala.collection.mutable
 
-class ReceiverSocket(val senderInfo:SenderInfo) extends Thread {
+class ReceiverSocket(val SocketData: SocketData) extends Thread {
 
   private var messageQueue = mutable.Queue[Message]()
 
@@ -25,7 +25,7 @@ class ReceiverSocket(val senderInfo:SenderInfo) extends Thread {
   override def run(): Unit = {
     val socketChannelReceiver = ServerSocketChannel.open
     socketChannelReceiver.configureBlocking(true)
-    socketChannelReceiver.socket.bind(new InetSocketAddress(senderInfo.address,senderInfo.port))
+    socketChannelReceiver.socket.bind(new InetSocketAddress(SocketData.address,SocketData.port))
 
     while (true) {
       val connectionToSocket = socketChannelReceiver.accept
