@@ -1,9 +1,10 @@
 package Nodes
 
 import Messaging._
+import Misc.ResourceUtilities
 import Routing.RoutingTable
 
-class Broker(override val address: String, override val ID: Int, override val port: Int, override val receiverPort: Int, val neighbours: List[Int]) extends Node( address, ID,  port, receiverPort) {
+class Broker(override val ID: Int) extends Node(ID) {
 
   // TODO may need to be changed, see needed datastructures
   private val subscriptionList = scala.collection.mutable.Map[Int, Subscription]()
@@ -12,7 +13,7 @@ class Broker(override val address: String, override val ID: Int, override val po
 
   private val SRT = new RoutingTable()
   private val PRT = new RoutingTable()
-  private val NB = neighbours
+  private val NB = ResourceUtilities.getNeighbours(ID)
   private val ACKS = scala.collection.mutable.Map[(Int, Int), List[Int]]() //Tuple is (msg, link) -> List of acks
   private val Groups = List[Int]()
   private val IsActive = scala.collection.mutable.Map[Int, Boolean]() // AdvertisementID

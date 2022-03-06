@@ -1,12 +1,12 @@
 package Communication
 
 import Messaging.Message
-import java.io.{ObjectInputStream, ObjectOutputStream}
+import java.io.ObjectOutputStream
 import java.net.InetSocketAddress
 import java.nio.channels.SocketChannel
 
 @SerialVersionUID(100L)
-class SenderSocket(val SocketData: SocketData) extends Serializable {
+class SenderSocket() extends Serializable {
 
   def sendMessage(messageToSend: Message, addressReceiver: String, portReceiver: Int): Unit = {
 

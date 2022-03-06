@@ -1,11 +1,22 @@
 package Misc
 
+import Communication.SocketData
+
 import scala.io.Source
 
 object ResourceUtilities {
 
   private val nodeList: Map[Int, (String, Int)] = parseNodeList()
   private val brokerNetwork: Map[Int, List[Int]] = parseBrokerNetwork()
+
+  def getNodeSocketData(ID: Int): SocketData = {
+    new SocketData(ID, nodeList(ID)._1, nodeList(ID)._2)
+  }
+
+
+  def getNeighbours(ID: Int): List[Int] = {
+    brokerNetwork(ID)
+  }
 
   def getNodeList(): Map[Int, (String, Int)] = nodeList
 

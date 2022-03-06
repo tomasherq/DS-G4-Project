@@ -4,7 +4,7 @@ import Misc.ResourceUtilities
 import Messaging._
 import Nodes.ClientType.{ClientType, PUBLISHER, SUBSCRIBER}
 
-class Client(override val address: String, override val ID: Int, override val port: Int, override val receiverPort: Int, val brokerID: Int, val mode: ClientType) extends Node( address, ID,  port, receiverPort) {
+class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) extends Node(ID) {
 
   // TODO create the logic around these lists
   private val subscriptionList = scala.collection.mutable.Map[Int, Subscription]()

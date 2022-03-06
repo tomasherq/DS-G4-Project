@@ -2,21 +2,21 @@ package Nodes
 
 import Communication.{ReceiverSocket, SenderSocket, SocketData}
 import Messaging.Message
+import Misc.ResourceUtilities
+
 import java.sql.Timestamp
 import scala.language.implicitConversions
 
-abstract class Node(val address: String, val ID: Int, val port: Int, val receiverPort: Int) {
+abstract class Node(val ID: Int) {
 
-  protected val SocketData: SocketData = new SocketData(ID, address, port)
+  protected val SocketData: SocketData = ResourceUtilities.getNodeSocketData(ID)
   protected val receiver: ReceiverSocket = new ReceiverSocket(SocketData)
-  protected val sender: SenderSocket = new SenderSocket(SocketData)
+  protected val sender: SenderSocket = new SenderSocket()
   protected val randomGenerator: scala.util.Random = scala.util.Random
-
   /**
    * Used in all classes to kep track of publications of an advertisement or messages sent
    */
    var counters: scala.collection.mutable.Map[String, Int] = scala.collection.mutable.Map[String, Int]()
-
   /**
    * This list has to be accessed to see the historic, only remove if ACK sent
    * We have a list of the ones we sent and received
@@ -24,6 +24,13 @@ abstract class Node(val address: String, val ID: Int, val port: Int, val receive
   private var messagesSent = scala.collection.mutable.Map[Int, Message]()
   private var messagesReceived = scala.collection.mutable.Map[Int, Message]()
 
+  def getNodeIP(): String = {
+    SocketData.address
+  }
+
+  def getNodePort(): Int = {
+    SocketData.port
+  }
 
   def getMessageID(): Int = {
     if(!counters.contains("message")) {

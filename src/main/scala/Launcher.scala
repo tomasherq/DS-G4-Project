@@ -6,9 +6,6 @@ import scala.sys.exit
 
 object Launcher extends Thread {
 
-  private var nodeList: Map[Int, (String, Int)] = _
-  private var brokerNetwork: Map[Int, List[Int]] = _
-
   private val usage =
     """
   Usage: Launcher
@@ -22,14 +19,14 @@ object Launcher extends Thread {
 
   def initializeNode(node_type: String, node_ID: Int, broker_ID: Int, node_mode: ClientType): Node = {
     if (node_type == "client") {
-      new Client(nodeList(node_ID)._1, node_ID, nodeList(node_ID)._2, nodeList(node_ID)._2 + 1, broker_ID, node_mode)
+      new Client(node_ID, broker_ID, node_mode)
     } else {
-      new Broker(nodeList(node_ID)._1, node_ID, nodeList(node_ID)._2, nodeList(node_ID)._2 + 1, brokerNetwork(node_ID))
+      new Broker(node_ID)
     }
   }
 
   def startNode(node: Node): Unit = {
-    println("\nNode is listening on " + node.address + ":" + node.port)
+    println("\nNode is listening on " + node.getNodeIP() + ":" + node.getNodePort())
     node.execute()
   }
 
@@ -82,13 +79,13 @@ object Launcher extends Thread {
     if (node_type == "client") println("BID: " + broker_ID + "\nMode: " + node_mode)
 
     // Parse and print node list
-    nodeList = ResourceUtilities.getNodeList()
+    val nodeList = ResourceUtilities.getNodeList()
     println("\nSuccessfully parsed Node List:")
     println(nodeList)
 
     // Parse Broker Network if instance is of type Broker
     if (node_type == "broker") {
-      brokerNetwork = ResourceUtilities.getBrokerNetwork()
+      val brokerNetwork = ResourceUtilities.getBrokerNetwork()
       println("\nSuccessfully parsed Broker Network:")
       println(brokerNetwork)
     }
