@@ -7,5 +7,5 @@ import org.apache.commons.net.ntp.TimeStamp
 class Message(val ID: (Int, Int),
               val sender: SocketData,
               val destination: Int,
-              val content: MessageTypes,
+              val content: MessageType,
               val timestamp: TimeStamp) extends Serializable
