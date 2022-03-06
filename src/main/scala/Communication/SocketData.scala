@@ -1,6 +1,6 @@
 package Communication
 
-@SerialVersionUID(100L)
+@SerialVersionUID(1L)
 class SocketData(val ID: Int,
                  var address: String,
                  val port: Int) extends Serializable

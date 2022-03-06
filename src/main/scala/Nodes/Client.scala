@@ -10,20 +10,17 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
   private val subscriptionList = scala.collection.mutable.Map[Int, Subscription]()
   private val advertisementList = scala.collection.mutable.Map[Int, Advertisement]()
 
-  private val (brokerIP, brokerPort) = (ResourceUtilities.getNodeList()(brokerID)._1, ResourceUtilities.getNodeList()(brokerID)._2)
-
-
   /**
    * Advertisement methods
    */
   def sendAdvertisement(): Unit = {
     println("Sending Advertisement")
 
-    val adID: Int = ID + counters.get("Advertisements").get
+    val adID: Int = ID + counters("Advertisements")
     val advertisement = Advertisement(adID)
     val content = Advertise(adID)
 
-    sendMessage(new Message(getMessageID(), SocketData, brokerID, content, getCurrentTimestamp()))
+    sendMessage(new Message(getMessageID(), SocketData, brokerID, content, getCurrentTimestamp()), brokerID)
 
     advertisementList += (adID -> advertisement)
 
@@ -76,13 +73,6 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
   def sendAckRequest(): Unit = {
     println("Sending Ack Request")
     // TODO To be implemented
-  }
-
-  /**
-   * sendMessage wrapper for client -> broker
-   */
-  def sendMessage(message: Message): Unit = {
-    sender.sendMessage(message, brokerIP, brokerPort)
   }
 
   private def simulateClientBehaviour(): Unit = {

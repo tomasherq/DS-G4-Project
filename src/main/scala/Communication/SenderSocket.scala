@@ -5,7 +5,7 @@ import java.io.ObjectOutputStream
 import java.net.InetSocketAddress
 import java.nio.channels.SocketChannel
 
-@SerialVersionUID(100L)
+@SerialVersionUID(1L)
 class SenderSocket() extends Serializable {
 
   def sendMessage(messageToSend: Message, addressReceiver: String, portReceiver: Int): Unit = {

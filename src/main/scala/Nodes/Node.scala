@@ -36,7 +36,7 @@ abstract class Node(val ID: Int) {
     if(!counters.contains("message")) {
       counters += ("message"->0)
     }
-    counters.get("message").get
+    counters("message")
   }
 
   // TODO Check if we can do this is a better way
@@ -45,6 +45,14 @@ abstract class Node(val ID: Int) {
     val date = new java.util.Date
     date.getTime.toInt
 
+  }
+
+  /**
+   * sendMessage wrapper for client -> broker
+   */
+  def sendMessage(message: Message, DestinationID: Int): Unit = {
+    val DestinationSocketData = ResourceUtilities.getNodeSocketData(DestinationID)
+    sender.sendMessage(message, DestinationSocketData.address, DestinationSocketData.port)
   }
 
   def startReceiver(): Unit = {
