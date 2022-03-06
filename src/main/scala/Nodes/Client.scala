@@ -22,12 +22,20 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
     sendMessage(new Message(getMessageID(), SocketData, brokerID, content, getCurrentTimestamp()), brokerID)
 
     advertisementList += (adID -> advertisement)
-
+    println(advertisementList)
     // TODO finish method
   }
 
   def sendUnadvertisement(): Unit = {
     println("Sending Unadvertisement")
+
+    val advertisement = advertisementList((ID, counters("Advertisements")))
+    val content = Unadvertise(advertisement)
+
+    sendMessage(new Message(getMessageID(), SocketData, brokerID, content, getCurrentTimestamp()), brokerID)
+
+    advertisementList -= ((ID, counters("Advertisements")))
+    println(advertisementList)
     // TODO To be implemented
   }
 
@@ -83,7 +91,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
       option match {
         case x if x > 0 && x <= 19 => sendAdvertisement()
         case 20 => sendUnadvertisement()
-        case x if x > 20 && x <= 29 => sendPublication()
+        case x if x > 20 && x <= 29 => sendUnadvertisement()
         case 30 => sendAckRequest()
         case _ =>
       }

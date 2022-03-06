@@ -33,9 +33,6 @@ abstract class Node(val ID: Int) {
   }
 
   def getMessageID(): (Int, Int) = {
-    if(!counters.contains("message")) {
-      counters += ("message"->0)
-    }
     (ID, counters("message"))
   }
 
@@ -56,10 +53,16 @@ abstract class Node(val ID: Int) {
     t.start()
   }
 
+  def initializeCounters(): Unit = {
+    counters += ("message"->0)
+    counters += ("Advertisements"->0)
+    counters += ("UnAdvertisements"->0)
+  }
+
   // TODO Needs to be overridden, need to factor out the seed as static Node field
   def execute(): Unit = {
     // We have to develop a method to make this seed always the same so we can perform experiments
     randomGenerator.setSeed(100)
-    counters += ("Advertisements"->0)
+    initializeCounters()
   }
 }

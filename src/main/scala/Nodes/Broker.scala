@@ -38,14 +38,16 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
     if (!subscriptionList.contains(content.advertisement.ID)) {
       subscriptionList += (content.advertisement.ID -> Subscription(content.advertisement.ID, content.advertisement.pClass, content.advertisement.pAttributes))
     }
+    println(subscriptionList)
   }
   def receiveUnadvertisement(message: Message): Unit = {
     println("Receiving Unadvertisement")
-    val content:Advertise = message.content.asInstanceOf[Advertise]
+    val content: Unadvertise = message.content.asInstanceOf[Unadvertise]
 
     if(subscriptionList.contains(content.advertisement.ID)) {
       subscriptionList -= content.advertisement.ID
     }
+    println(subscriptionList)
   }
 
   /**
@@ -64,7 +66,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
   /**
    * Publication methods
    */
-  def receivePubRequest(message: Message): Unit = {
+  def receiveTimedPubRequest(message: Message): Unit = {
     println("Receiving Publish Request")
     // TODO To be implemented
   }
@@ -91,16 +93,20 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
       println("Waiting for messages...")
 
       while (!receiver.isQueueEmpty) {
-        println("Parsing a new message...")
+        println("Retrieving a new message...")
         val message = receiver.getFirstFromQueue()
 
         if(SRT.hasRoute(message.SocketData.ID) ) {
           SRT.addRoute(message.SocketData)
         }
 
-        // TODO define all types
         message.content match {
-          case _ : Advertise => receiveAdvertisement(message)
+          case _: Advertise => receiveAdvertisement(message)
+          case _: Unadvertise => receiveUnadvertisement(message)
+          case _: Subscribe => receiveSubscription(message)
+          case _: Unsubscribe => receiveUnsubscription(message)
+          case _: AckRequest => receiveAckRequest(message)
+          case _: TimedPublishRequest => receiveTimedPubRequest(message)
         }
         receiver.emptyQueue() // Process the message, this should be individual
       }
