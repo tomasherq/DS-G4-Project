@@ -7,18 +7,18 @@ import scala.io.Source
 object ResourceUtilities {
 
   private val nodeList: Map[Int, (String, Int)] = parseNodeList()
-  private val brokerNetwork: Map[Int, List[Int]] = parseBrokerNetwork()
+  private val brokerTopology: Map[Int, List[Int]] = parseBrokerTopology()
 
   def getNodeList(): Map[Int, (String, Int)] = nodeList
 
-  def getBrokerNetwork(): Map[Int, List[Int]] = brokerNetwork
+  def getBrokerTopology(): Map[Int, List[Int]] = brokerTopology
 
   def getNodeSocketData(ID: Int): SocketData = {
     new SocketData(ID, nodeList(ID)._1, nodeList(ID)._2)
   }
 
   def getNeighbours(ID: Int): List[Int] = {
-    brokerNetwork(ID)
+    brokerTopology(ID)
   }
 
   private def parseNodeList(): Map[Int, (String, Int)] = {
@@ -31,13 +31,13 @@ object ResourceUtilities {
     nodeList
   }
 
-  private def parseBrokerNetwork(): Map[Int, List[Int]] = {
-    val filename = "BrokerNetwork.txt"
-    val brokerNetwork = Source.fromResource(filename).getLines
+  private def parseBrokerTopology(): Map[Int, List[Int]] = {
+    val filename = "BrokerTopology.txt"
+    val brokerTopology = Source.fromResource(filename).getLines
       .map(line => {
         val entry = line.split(' ')
         (entry.head.toInt, entry.tail.map(_.toInt).toList)
       }).toMap
-    brokerNetwork
+    brokerTopology
   }
 }

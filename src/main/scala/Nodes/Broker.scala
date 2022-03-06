@@ -4,17 +4,17 @@ import Messaging._
 import Misc.ResourceUtilities
 import Routing.RoutingTable
 
-class Broker(override val ID: Int) extends Node(ID) {
+class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
 
   // TODO may need to be changed, see needed datastructures
-  private val subscriptionList = scala.collection.mutable.Map[Int, Subscription]()
-  private val advertisementList = scala.collection.mutable.Map[Int, Advertisement]()
-  private val subscriberList = scala.collection.mutable.Map[Int, Advertisement]()
+  private val subscriptionList = scala.collection.mutable.Map[(Int, Int), Subscription]()
+  private val advertisementList = scala.collection.mutable.Map[(Int, Int), Advertisement]()
+  private val subscriberList = scala.collection.mutable.Map[(Int, Int), Advertisement]()
 
   private val SRT = new RoutingTable()
   private val PRT = new RoutingTable()
   private val NB = ResourceUtilities.getNeighbours(ID)
-  private val ACKS = scala.collection.mutable.Map[(Int, Int), List[Int]]() //Tuple is (msg, link) -> List of acks
+  private val ACKS = scala.collection.mutable.Map[(Int, Int), Boolean]() //Tuple is (msg, link)
   private val Groups = List[Int]()
   private val IsActive = scala.collection.mutable.Map[Int, Boolean]() // AdvertisementID
   private val StoredPubs = scala.collection.mutable.Map[Int, List[Int]]() // PublisherID -> list of publications
@@ -33,18 +33,18 @@ class Broker(override val ID: Int) extends Node(ID) {
   def receiveAdvertisement(message: Message): Unit = {
     println("Receiving Advertisement")
 
-    val content:Advertise=message.content.asInstanceOf[Advertise]
+    val content: Advertise = message.content.asInstanceOf[Advertise]
 
-    if(!subscriptionList.contains(content.advertisementID)) {
-      subscriptionList += (content.advertisementID -> Subscription(message.SocketData.ID))
+    if (!subscriptionList.contains(content.advertisement.ID)) {
+      subscriptionList += (content.advertisement.ID -> Subscription(content.advertisement.ID, content.advertisement.pClass, content.advertisement.pAttributes))
     }
   }
   def receiveUnadvertisement(message: Message): Unit = {
     println("Receiving Unadvertisement")
     val content:Advertise = message.content.asInstanceOf[Advertise]
 
-    if(subscriptionList.contains(content.advertisementID)) {
-      subscriptionList -= content.advertisementID
+    if(subscriptionList.contains(content.advertisement.ID)) {
+      subscriptionList -= content.advertisement.ID
     }
   }
 

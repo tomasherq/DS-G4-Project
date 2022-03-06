@@ -15,13 +15,16 @@ object Launcher extends Thread {
     In case of client:
       --BID   ID of edge broker
       --mode  publisher or subscriber
+
+    In case of broker:
+      --endpoints list of connected clients e.g. "1 4"
   """
 
-  def initializeNode(node_type: String, node_ID: Int, broker_ID: Int, node_mode: ClientType): Node = {
+  def initializeNode(node_type: String, node_ID: Int, broker_ID: Int, endpoints: List[Int], node_mode: ClientType): Node = {
     if (node_type == "client") {
       new Client(node_ID, broker_ID, node_mode)
     } else {
-      new Broker(node_ID)
+      new Broker(node_ID, endpoints)
     }
   }
 
@@ -42,6 +45,7 @@ object Launcher extends Thread {
     var node_mode: ClientType = null
     var node_ID = 0
     var broker_ID = 0
+    var endpoints: List[Int] = null
 
     while (arglist.nonEmpty) {
       arglist match {
@@ -67,6 +71,9 @@ object Launcher extends Thread {
             println("Undefined Node Type")
             exit(1)
           }
+        case "--endpoints" :: value :: tail =>
+          endpoints = value.split(' ').map(_.toInt).toList
+          arglist = tail
         case option =>
           println("Unknown option " + option)
           exit(1)
@@ -77,6 +84,7 @@ object Launcher extends Thread {
     println("Type: " + node_type)
     println("ID: " + node_ID)
     if (node_type == "client") println("BID: " + broker_ID + "\nMode: " + node_mode)
+    if (node_type == "broker") println("Endpoints: " + endpoints)
 
     // Parse and print node list
     val nodeList = ResourceUtilities.getNodeList()
@@ -85,12 +93,12 @@ object Launcher extends Thread {
 
     // Parse Broker Network if instance is of type Broker
     if (node_type == "broker") {
-      val brokerNetwork = ResourceUtilities.getBrokerNetwork()
-      println("\nSuccessfully parsed Broker Network:")
-      println(brokerNetwork)
+      val brokerTopology = ResourceUtilities.getBrokerTopology()
+      println("\nSuccessfully parsed Broker Topology:")
+      println(brokerTopology)
     }
 
-    val node = initializeNode(node_type, node_ID, broker_ID, node_mode)
+    val node = initializeNode(node_type, node_ID, broker_ID, endpoints, node_mode)
     startNode(node)
     println(s"\nSuccessfully initialized the Node $node_type $node_ID")
   }

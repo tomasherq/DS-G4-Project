@@ -6,8 +6,8 @@ import Nodes.ClientType.{ClientType, PUBLISHER, SUBSCRIBER}
 class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) extends Node(ID) {
 
   // TODO create the logic around these lists
-  private val subscriptionList = scala.collection.mutable.Map[Int, Subscription]()
-  private val advertisementList = scala.collection.mutable.Map[Int, Advertisement]()
+  private val subscriptionList = scala.collection.mutable.Map[(Int, Int), Subscription]()
+  private val advertisementList = scala.collection.mutable.Map[(Int, Int), Advertisement]()
 
   /**
    * Advertisement methods
@@ -15,9 +15,9 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
   def sendAdvertisement(): Unit = {
     println("Sending Advertisement")
 
-    val adID: Int = ID + counters("Advertisements")
-    val advertisement = Advertisement(adID)
-    val content = Advertise(adID)
+    val adID: (Int, Int) = (ID, counters("Advertisements"))
+    val advertisement = Advertisement(adID, "Temp", List((x: Int) => x < 40, (x: Int) => x != 19))
+    val content = Advertise(advertisement)
 
     sendMessage(new Message(getMessageID(), SocketData, brokerID, content, getCurrentTimestamp()), brokerID)
 

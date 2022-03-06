@@ -32,11 +32,11 @@ abstract class Node(val ID: Int) {
     SocketData.port
   }
 
-  def getMessageID(): Int = {
+  def getMessageID(): (Int, Int) = {
     if(!counters.contains("message")) {
       counters += ("message"->0)
     }
-    counters("message")
+    (ID, counters("message"))
   }
 
   def getCurrentTimestamp(): TimeStamp = {
