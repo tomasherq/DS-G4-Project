@@ -54,9 +54,8 @@ abstract class Node(val ID: Int) {
   }
 
   def initializeCounters(): Unit = {
-    counters += ("message"->0)
-    counters += ("Advertisements"->0)
-    counters += ("UnAdvertisements"->0)
+    counters += ("message" -> 1)
+    counters += ("Advertisements" -> 1)
   }
 
   // TODO Needs to be overridden, need to factor out the seed as static Node field

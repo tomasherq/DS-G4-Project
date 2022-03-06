@@ -1,40 +1,41 @@
 package Nodes
 
+import Messaging.GuaranteeType.NONE
 import Messaging._
 import Nodes.ClientType.{ClientType, PUBLISHER, SUBSCRIBER}
 
 class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) extends Node(ID) {
 
-  // TODO create the logic around these lists
   private val subscriptionList = scala.collection.mutable.Map[(Int, Int), Subscription]()
   private val advertisementList = scala.collection.mutable.Map[(Int, Int), Advertisement]()
 
   /**
    * Advertisement methods
    */
-  def sendAdvertisement(): Unit = {
+  def sendAdvertisement(pClass: String, pAttributes: List[Int => Boolean]): Unit = {
     println("Sending Advertisement")
 
     val adID: (Int, Int) = (ID, counters("Advertisements"))
-    val advertisement = Advertisement(adID, "Temp", List((x: Int) => x < 40, (x: Int) => x != 19))
-    val content = Advertise(advertisement)
+    val advertisement = Advertisement(adID, pClass, pAttributes)
+    val content = Advertise(advertisement, NONE)
 
     sendMessage(new Message(getMessageID(), SocketData, brokerID, content, getCurrentTimestamp()), brokerID)
 
     advertisementList += (adID -> advertisement)
+    counters += ("Advertisements" -> (counters("Advertisements")+1))
+
     println(advertisementList)
     // TODO finish method
   }
 
-  def sendUnadvertisement(): Unit = {
+  def sendUnadvertisement(advertisement: Advertisement): Unit = {
     println("Sending Unadvertisement")
 
-    val advertisement = advertisementList((ID, counters("Advertisements")))
-    val content = Unadvertise(advertisement)
-
+    val content = Unadvertise(advertisement, NONE)
     sendMessage(new Message(getMessageID(), SocketData, brokerID, content, getCurrentTimestamp()), brokerID)
 
     advertisementList -= ((ID, counters("Advertisements")))
+
     println(advertisementList)
     // TODO To be implemented
   }
@@ -82,23 +83,22 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
     // TODO To be implemented
   }
 
+
+  /**
+   * Simulate random  behaviour
+   */
   private def simulateClientBehaviour(): Unit = {
     val option = randomGenerator.nextInt(100)
-    /**
-     * Simulate random publisher behaviour
-     */
+
     if (mode == PUBLISHER) {
       option match {
-        case x if x > 0 && x <= 19 => sendAdvertisement()
-        case 20 => sendUnadvertisement()
-        case x if x > 20 && x <= 29 => sendUnadvertisement()
+        //case x if x > 0 && x <= 19 => sendAdvertisement()
+        //case 20 => sendUnadvertisement()
+        //case x if x > 20 && x <= 29 => sendUnadvertisement()
         case 30 => sendAckRequest()
         case _ =>
       }
     }
-    /**
-     * Simulate random subscriber behaviour
-     */
     if (mode == SUBSCRIBER) {
       option match {
         case _ =>
@@ -122,7 +122,6 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
         println("Retrieving a new message...")
         val message = receiver.getFirstFromQueue()
 
-        // TODO define all types
         message.content match {
           case _ : AckResponse => receiveAckResponse(message)
           case _ : Publication => receivePublication(message)

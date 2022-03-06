@@ -1,5 +1,7 @@
 package Messaging
 
+import Messaging.GuaranteeType.GuaranteeType
+
 trait MessageTypes
 
 @SerialVersionUID(1L)
@@ -8,9 +10,9 @@ case class Subscribe(advertisementID: (Int, Int), subscriberID: Int) extends Ser
 case class Unsubscribe(advertisementID: (Int, Int), subscriberID: Int) extends Serializable with MessageTypes
 
 @SerialVersionUID(1L)
-case class Advertise(advertisement: Advertisement) extends Serializable with MessageTypes
+case class Advertise(advertisement: Advertisement, guarantee: GuaranteeType) extends Serializable with MessageTypes
 @SerialVersionUID(1L)
-case class Unadvertise(advertisement: Advertisement) extends Serializable with MessageTypes
+case class Unadvertise(advertisement: Advertisement, guarantee: GuaranteeType) extends Serializable with MessageTypes
 
 @SerialVersionUID(1L)
 case class AckRequest(messageID: Int, nodeID: Int) extends Serializable with MessageTypes

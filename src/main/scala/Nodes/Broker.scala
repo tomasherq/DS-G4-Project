@@ -1,12 +1,12 @@
 package Nodes
 
+import Messaging.GuaranteeType._
 import Messaging._
 import Misc.ResourceUtilities
 import Routing.RoutingTable
 
 class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
 
-  // TODO may need to be changed, see needed datastructures
   private val subscriptionList = scala.collection.mutable.Map[(Int, Int), Subscription]()
   private val advertisementList = scala.collection.mutable.Map[(Int, Int), Advertisement]()
   private val subscriberList = scala.collection.mutable.Map[(Int, Int), Advertisement]()
@@ -34,6 +34,14 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
     println("Receiving Advertisement")
 
     val content: Advertise = message.content.asInstanceOf[Advertise]
+
+    SRT.addRoute(content.advertisement.ID, message.sender.ID)
+    val nextHops: List[Int] = NB diff List(message.sender.ID)
+
+    if (content.guarantee == ACK) {
+
+    }
+
 
     if (!subscriptionList.contains(content.advertisement.ID)) {
       subscriptionList += (content.advertisement.ID -> Subscription(content.advertisement.ID, content.advertisement.pClass, content.advertisement.pAttributes))
@@ -95,10 +103,6 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
       while (!receiver.isQueueEmpty) {
         println("Retrieving a new message...")
         val message = receiver.getFirstFromQueue()
-
-        if(SRT.hasRoute(message.SocketData.ID) ) {
-          SRT.addRoute(message.SocketData)
-        }
 
         message.content match {
           case _: Advertise => receiveAdvertisement(message)

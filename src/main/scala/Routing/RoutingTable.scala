@@ -1,26 +1,22 @@
 package Routing
 
-import Communication.SocketData
-
 class RoutingTable {
 
-  private val table = scala.collection.mutable.Map[Int, RoutingEntry]()
+  private val table = scala.collection.mutable.Map[(Int, Int), Int]()
 
-  def addRoute(SocketData: SocketData): Unit = {
-    table += (SocketData.ID -> new RoutingEntry(SocketData.address, SocketData.port))
+  def addRoute(ID: (Int, Int), Destination: Int): Unit = {
+    table += (ID -> Destination)
   }
 
-  def getRoute(ID: Int): RoutingEntry = {
-    if (hasRoute(ID)) {
-      table(ID)
-    } else null
+  def getRoute(ID: (Int, Int)): Int = {
+    table(ID)
   }
 
-  def hasRoute(ID: Int): Boolean = {
+  def hasRoute(ID: (Int, Int)): Boolean = {
     table.contains(ID)
   }
 
-  def deleteRoute(ID: Int): Unit = {
+  def deleteRoute(ID: (Int, Int)): Unit = {
     table -= ID
   }
 
