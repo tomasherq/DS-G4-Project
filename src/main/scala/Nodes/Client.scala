@@ -1,6 +1,5 @@
 package Nodes
 
-import Misc.ResourceUtilities
 import Messaging._
 import Nodes.ClientType.{ClientType, PUBLISHER, SUBSCRIBER}
 

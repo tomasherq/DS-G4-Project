@@ -3,8 +3,8 @@ package Nodes
 import Communication.{ReceiverSocket, SenderSocket, SocketData}
 import Messaging.Message
 import Misc.ResourceUtilities
+import org.apache.commons.net.ntp.TimeStamp
 
-import java.sql.Timestamp
 import scala.language.implicitConversions
 
 abstract class Node(val ID: Int) {
@@ -39,12 +39,8 @@ abstract class Node(val ID: Int) {
     counters("message")
   }
 
-  // TODO Check if we can do this is a better way
-  def getCurrentTimestamp(): Int = {
-    implicit def date2timestamp(date: java.util.Date): Timestamp = new java.sql.Timestamp(date.getTime)
-    val date = new java.util.Date
-    date.getTime.toInt
-
+  def getCurrentTimestamp(): TimeStamp = {
+    TimeStamp.getCurrentTime
   }
 
   /**
