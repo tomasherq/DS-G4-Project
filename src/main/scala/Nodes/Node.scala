@@ -58,9 +58,7 @@ abstract class Node(val ID: Int) {
     counters += ("Advertisements" -> 1)
   }
 
-  // TODO Needs to be overridden, need to factor out the seed as static Node field
   def execute(): Unit = {
-    // We have to develop a method to make this seed always the same so we can perform experiments
     randomGenerator.setSeed(100)
     initializeCounters()
   }
