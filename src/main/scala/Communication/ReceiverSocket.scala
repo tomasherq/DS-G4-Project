@@ -35,9 +35,6 @@ class ReceiverSocket(val SocketData: SocketData) extends Thread {
       val messageReceived = ois.readObject.asInstanceOf[Message]
 
       messageQueue.enqueue(messageReceived)
-
-      // TODO find out if we need this
-      Thread.sleep(10)
     }
   }
 }
