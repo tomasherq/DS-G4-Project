@@ -2,8 +2,6 @@ package Nodes
 
 import Communication.{ReceiverSocket, SenderSocket, SocketData}
 import Messaging.Message
-
-import java.net.BindException
 import java.sql.Timestamp
 import scala.language.implicitConversions
 
@@ -26,9 +24,6 @@ abstract class Node(val address: String, val ID: Int, val port: Int, val receive
   private var messagesSent = scala.collection.mutable.Map[Int, Message]()
   private var messagesReceived = scala.collection.mutable.Map[Int, Message]()
 
-  def sendMessage(message: Message): Unit = {
-    // TODO general method to send the actual message
-  }
 
   def getMessageID(): Int = {
     if(!counters.contains("message")) {
@@ -42,6 +37,7 @@ abstract class Node(val address: String, val ID: Int, val port: Int, val receive
     implicit def date2timestamp(date: java.util.Date): Timestamp = new java.sql.Timestamp(date.getTime)
     val date = new java.util.Date
     date.getTime.toInt
+
   }
 
   def startReceiver(): Unit = {

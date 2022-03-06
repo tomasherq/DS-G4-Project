@@ -1,32 +1,33 @@
 package Nodes
 
+import Misc.ResourceUtilities
 import Messaging._
 import Nodes.ClientType.{ClientType, PUBLISHER, SUBSCRIBER}
 
 class Client(override val address: String, override val ID: Int, override val port: Int, override val receiverPort: Int, val brokerID: Int, val mode: ClientType) extends Node( address, ID,  port, receiverPort) {
 
-  /**
-   * Keep track of the advertisements and subscriptions the client created
-   */
+  // TODO create the logic around these lists
   private val subscriptionList = scala.collection.mutable.Map[Int, Subscription]()
   private val advertisementList = scala.collection.mutable.Map[Int, Advertisement]()
+
+  private val (brokerIP, brokerPort) = (ResourceUtilities.getNodeList()(brokerID)._1, ResourceUtilities.getNodeList()(brokerID)._2)
+
 
   /**
    * Advertisement methods
    */
   def sendAdvertisement(): Unit = {
     println("Sending Advertisement")
-    val adID: Int = ID + counters.get("Advertisements").get
-    val advertisement = new Advertisement(adID)
-    val content = new Advertise(adID)
 
-    // TODO client should only send to known broker, the broker will use routing table
-    val routeInfo = ("192.168.1.85", 5000)
-    val message: Message = new Message(getMessageID(), SocketData, brokerID, content, getCurrentTimestamp())
-    sender.sendMessage(message, routeInfo._1, routeInfo._2)
+    val adID: Int = ID + counters.get("Advertisements").get
+    val advertisement = Advertisement(adID)
+    val content = Advertise(adID)
+
+    sendMessage(new Message(getMessageID(), SocketData, brokerID, content, getCurrentTimestamp()))
 
     advertisementList += (adID -> advertisement)
-    // TODO To be implemented
+
+    // TODO finish method
   }
 
   def sendUnadvertisement(): Unit = {
@@ -77,6 +78,13 @@ class Client(override val address: String, override val ID: Int, override val po
     // TODO To be implemented
   }
 
+  /**
+   * sendMessage wrapper for client -> broker
+   */
+  def sendMessage(message: Message): Unit = {
+    sender.sendMessage(message, brokerIP, brokerPort)
+  }
+
   private def simulateClientBehaviour(): Unit = {
     val option = randomGenerator.nextInt(100)
     /**
@@ -114,7 +122,7 @@ class Client(override val address: String, override val ID: Int, override val po
       println("Waiting for messages...")
 
       while (!receiver.isQueueEmpty) {
-        println("Parsing a new message...")
+        println("Retrieving a new message...")
         val message = receiver.getFirstFromQueue()
 
         // TODO define all types

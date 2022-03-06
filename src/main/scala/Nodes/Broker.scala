@@ -35,7 +35,7 @@ class Broker(override val address: String, override val ID: Int, override val po
     val content:Advertise=message.content.asInstanceOf[Advertise]
 
     if(!subscriptionList.contains(content.advertisementID)) {
-      subscriptionList += (content.advertisementID -> new Subscription(message.SocketData.ID))
+      subscriptionList += (content.advertisementID -> Subscription(message.SocketData.ID))
     }
   }
   def receiveUnadvertisement(message: Message): Unit = {

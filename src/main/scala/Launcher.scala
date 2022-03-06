@@ -1,17 +1,16 @@
+import Nodes._
+import Misc.ResourceUtilities
 import Nodes.ClientType.ClientType
 
 import scala.sys.exit
-import scala.io.Source
-import Nodes._
-
 
 object Launcher extends Thread {
 
-  private var nodeList = Map[Int, String]()
-  private var brokerNetwork = Map[Int, List[Int]]()
-  private val port = 5000
+  private var nodeList: Map[Int, (String, Int)] = _
+  private var brokerNetwork: Map[Int, List[Int]] = _
 
-  private val usage = """
+  private val usage =
+    """
   Usage: Launcher
     --type    client or broker
     --ID      ID of the client
@@ -21,45 +20,21 @@ object Launcher extends Thread {
       --mode  publisher or subscriber
   """
 
-  def parseNodeList(): Unit  = {
-
-    val filename = "NodeList.txt"
-
-    nodeList = Source.fromResource(filename).getLines
-      .map(line => {
-        val Array(id,ip,_*) = line.split(' ')
-        id.toInt -> ip }).toMap
-  }
-
-  def parseBrokerNetwork(): Unit  = {
-
-    val filename = "BrokerNetwork.txt"
-
-    brokerNetwork = Source.fromResource(filename).getLines
-      .map(line => {
-        val entry = line.split(' ')
-        (entry.head.toInt, entry.tail.map(_.toInt).toList)}).toMap
-  }
-
-  def getNodeList(): Map[Int, String] = nodeList
-
-  def getBrokerNetwork(): Map[Int, List[Int]] = brokerNetwork
-
   def initializeNode(node_type: String, node_ID: Int, broker_ID: Int, node_mode: ClientType): Node = {
     if (node_type == "client") {
-      new Client(nodeList(node_ID), node_ID, port, port+1, broker_ID, node_mode)
+      new Client(nodeList(node_ID)._1, node_ID, nodeList(node_ID)._2, nodeList(node_ID)._2 + 1, broker_ID, node_mode)
     } else {
-      new Broker(nodeList(node_ID), node_ID, port, port+1, getBrokerNetwork()(node_ID))
+      new Broker(nodeList(node_ID)._1, node_ID, nodeList(node_ID)._2, nodeList(node_ID)._2 + 1, brokerNetwork(node_ID))
     }
   }
 
   def startNode(node: Node): Unit = {
+    println("\nNode is listening on " + node.address + ":" + node.port)
     node.execute()
   }
 
   def main(args: Array[String]): Unit = {
 
-    // Parsing the cmd line arguments (we can use scopt either)
     if (args.length == 0) {
       println(usage)
       exit(1)
@@ -71,10 +46,10 @@ object Launcher extends Thread {
     var node_ID = 0
     var broker_ID = 0
 
-    while(arglist.nonEmpty) {
+    while (arglist.nonEmpty) {
       arglist match {
         case "--type" :: value :: tail =>
-          if (value == "broker" || value== "client") {
+          if (value == "broker" || value == "client") {
             node_type = value
             arglist = tail
           } else {
@@ -88,7 +63,7 @@ object Launcher extends Thread {
           broker_ID = value.toInt
           arglist = tail
         case "--mode" :: value :: tail =>
-          if (value == "publisher" || value== "subscriber") {
+          if (value == "publisher" || value == "subscriber") {
             node_mode = ClientType.values.find(_.toString.toLowerCase() == value.toLowerCase()).get
             arglist = tail
           } else {
@@ -101,22 +76,21 @@ object Launcher extends Thread {
       }
     }
 
-    // Test argument parse
     println("Successfully initialized Launcher with the following start-up parameters:")
     println("Type: " + node_type)
     println("ID: " + node_ID)
     if (node_type == "client") println("BID: " + broker_ID + "\nMode: " + node_mode)
 
     // Parse and print node list
-    parseNodeList()
+    nodeList = ResourceUtilities.getNodeList()
     println("\nSuccessfully parsed Node List:")
-    println(getNodeList())
+    println(nodeList)
 
     // Parse Broker Network if instance is of type Broker
     if (node_type == "broker") {
-      parseBrokerNetwork()
+      brokerNetwork = ResourceUtilities.getBrokerNetwork()
       println("\nSuccessfully parsed Broker Network:")
-      println(getBrokerNetwork())
+      println(brokerNetwork)
     }
 
     val node = initializeNode(node_type, node_ID, broker_ID, node_mode)

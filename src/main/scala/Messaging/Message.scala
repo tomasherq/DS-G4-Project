@@ -6,5 +6,5 @@ import Communication.SocketData
 class Message(val ID: Int,
               val SocketData: SocketData,
               val receiverID: Int,
-              val content: Any,
+              val content: MessageTypes,
               val timestamp: Int) extends Serializable

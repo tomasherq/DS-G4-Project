@@ -1,21 +1,23 @@
 package Messaging
 
+trait MessageTypes
+
 @SerialVersionUID(100L)
-class Subscribe(val advertisementID: Int, val subscriberID: Int) extends Serializable
+case class Subscribe(advertisementID: Int, subscriberID: Int) extends Serializable with MessageTypes
 @SerialVersionUID(1010)
-class Unsubscribe(val advertisementID: Int, val subscriberID: Int) extends Serializable
+case class Unsubscribe(advertisementID: Int, subscriberID: Int) extends Serializable with MessageTypes
 
 @SerialVersionUID(100L)
-class Advertise(val advertisementID: Int) extends Serializable
+case class Advertise(advertisementID: Int) extends Serializable with MessageTypes
 @SerialVersionUID(100L)
-class Unadvertise(val advertisementID: Int) extends Serializable
+case class Unadvertise(advertisementID: Int) extends Serializable with MessageTypes
 
 @SerialVersionUID(100L)
-class AckRequest(val messageID: Int, val nodeID: Int) extends Serializable
+case class AckRequest(messageID: Int, nodeID: Int) extends Serializable with MessageTypes
 @SerialVersionUID(100L)
-class AckResponse(val messageID: Int, val nodeID: Int) extends Serializable
+case class AckResponse(messageID: Int, nodeID: Int) extends Serializable with MessageTypes
 
 @SerialVersionUID(100L)
-class Publish(val content: Any, val publicationID: Int) extends Serializable
+case class Publish(content: Any, publicationID: Int) extends Serializable with MessageTypes
 @SerialVersionUID(100L)
-class TimedPublishRequest(val publicationID: Int, val subscriberID: Int, val timestamp: Int) extends Serializable //with Timestamp
+case class TimedPublishRequest(publicationID: Int, subscriberID: Int, timestamp: Int) extends Serializable with MessageTypes //with Timestamp
