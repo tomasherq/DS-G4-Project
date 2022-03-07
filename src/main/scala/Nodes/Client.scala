@@ -83,7 +83,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
    * Simulate random  behaviour
    */
   private def simulateClientBehaviour(): Unit = {
-    val option = randomGenerator.nextInt(100)
+    val option = randomGenerator.nextInt(5000)
 
     if (mode == PUBLISHER) {
       option match {
@@ -110,9 +110,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
     super.startReceiver()
 
     while (true) {
-      Thread.sleep(1000)
-      println("Waiting for messages...")
-
+      Thread.sleep(20)
       while (!receiver.isQueueEmpty) {
         println("Retrieving a new message...")
         val message = receiver.getFirstFromQueue()

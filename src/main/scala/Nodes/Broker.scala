@@ -40,9 +40,9 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
       if (nextHops.isEmpty) { // Reached an edge broker
         sendACK(messageType, a, lastHop)
       } else {
+        startAckTimer(messageType, a)
         for (hop <- nextHops) {
           ACKS += ((messageType, a, hop) -> false)
-          startAckTimer(messageType, a)
         }
       }
     }
@@ -161,8 +161,9 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
     super.startReceiver()
 
     while (true) {
-      Thread.sleep(1000)
-      println("Waiting for messages...")
+      val rand = new scala.util.Random
+      val randomNetworkDelay = 20 + rand.nextInt(( 40 - 20) + 1)
+      Thread.sleep(randomNetworkDelay)
 
       while (!receiver.isQueueEmpty) {
         println("Retrieving a new message...")
