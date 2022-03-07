@@ -6,6 +6,8 @@ import Nodes.ClientType.{ClientType, PUBLISHER, SUBSCRIBER}
 
 class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) extends Node(ID) {
 
+  private val publicationList = scala.collection.mutable.Map[(Int, Int), Publication]()
+  private val publicationsReceivedList = scala.collection.mutable.Map[(Int, Int), Publication]()
   private val subscriptionList = scala.collection.mutable.Map[(Int, Int), Subscription]()
   private val advertisementList = scala.collection.mutable.Map[(Int, Int), Advertisement]()
   private val waitingForACK = scala.collection.mutable.Set[(String, (Int, Int))]()
@@ -44,13 +46,32 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
   /**
    * Subscription methods
    */
-  def sendSubscription(): Unit = {
-    println("Sending Subscription")
-    // TODO To be implemented
+  def sendSubscription(pClass: String, pAttributes: List[Int => Boolean], guarantee: GuaranteeType): Unit = {
+    println("Sending Subscription to " + brokerID)
+
+    val subID: (Int, Int) = (ID, counters("Subscriptions"))
+    val subscription = Subscription(subID, pClass, pAttributes)
+    val content = Subscribe(subscription, guarantee)
+
+    sendMessage(new Message(getMessageID(), SocketData, brokerID, content, getCurrentTimestamp()), brokerID)
+
+    subscriptionList += (subID -> subscription)
+    if (guarantee == ACK) waitingForACK += ((content.getClass.toString, subID))
+    counters += ("Subscriptions" -> (counters("Subscriptions")+1))
+
+    println(subscriptionList)
   }
-  def sendUnsubscription(): Unit = {
-    println("Sending Unsubscription")
-    // TODO To be implemented
+
+  def sendUnsubscription(subscription: Subscription, guarantee: GuaranteeType): Unit = {
+    println("Sending Unsubscription to " + brokerID)
+
+    val content = Unsubscribe(subscription, guarantee)
+    sendMessage(new Message(getMessageID(), SocketData, brokerID, content, getCurrentTimestamp()), brokerID)
+
+    subscriptionList -= subscription.ID
+    if (guarantee == ACK) waitingForACK += ((content.getClass.toString, content.subscription.ID))
+
+    println(subscriptionList)
   }
 
   /**
@@ -63,11 +84,6 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
 
   def receivePublication(message: Message): Unit = {
     println("Receiving Publication")
-    // TODO To be implemented
-  }
-
-  def requestPublication(): Unit = {
-    println("Requesting Publication")
     // TODO To be implemented
   }
 
@@ -95,7 +111,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
       option match {
         case x if x == 1 =>
           sendAdvertisement("Test", List((x: Int) => x < 10), ACK)
-        case x if advertisementList.nonEmpty && x == 100 =>
+        case x if advertisementList.nonEmpty && x == 5 =>
           if (!waitingForACK.contains("Message.Advertise", advertisementList.head._1)) {
             sendUnadvertisement(advertisementList.head._2, ACK)
           }
@@ -104,6 +120,12 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
     }
     if (mode == SUBSCRIBER) {
       option match {
+        case x if x == 10  =>
+          sendSubscription("Test", List((x: Int) => x < 10), ACK)
+        case x if subscriptionList.nonEmpty && x == 5 =>
+          if (!waitingForACK.contains("Message.Subscribe", subscriptionList.head._1)) {
+            sendUnsubscription(subscriptionList.head._2, ACK)
+          }
         case _ =>
       }
     }

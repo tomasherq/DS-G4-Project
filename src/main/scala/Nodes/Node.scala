@@ -56,6 +56,7 @@ abstract class Node(val ID: Int) {
   def initializeCounters(): Unit = {
     counters += ("Message" -> 1)
     counters += ("Advertisements" -> 1)
+    counters += ("Subscriptions" -> 1)
   }
 
   def execute(): Unit = {

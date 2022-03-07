@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="LaunchClient6-4.jar" type="JarApplication" singleton="false">
+    <option name="JAR_PATH" value="$PROJECT_DIR$/target/DS-Project-V1.0.0-jar-with-dependencies.jar" />
+    <option name="PROGRAM_PARAMETERS" value="--type client --ID 6 --BID 4 --mode subscriber" />
+    <option name="ALTERNATIVE_JRE_PATH" />
+    <method v="2" />
+  </configuration>
+</component>

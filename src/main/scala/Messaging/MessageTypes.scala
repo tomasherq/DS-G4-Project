@@ -18,4 +18,4 @@ case class Unadvertise(advertisement: Advertisement, guarantee: GuaranteeType) e
 case class AckResponse(messageType: String, ID: (Int, Int)) extends Serializable with MessageType
 
 @SerialVersionUID(1L)
-case class Publish(content: Any, publicationID: Int) extends Serializable with MessageType
+case class Publish(publication: Publication, guaranteeType: GuaranteeType) extends Serializable with MessageType
