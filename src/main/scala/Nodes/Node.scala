@@ -53,6 +53,10 @@ abstract class Node(val ID: Int) {
     t.start()
   }
 
+  def startAckTimer(a: (Int, Int)): Unit = {
+    // TODO No idea yet what this should do
+  }
+
   def initializeCounters(): Unit = {
     counters += ("message" -> 1)
     counters += ("Advertisements" -> 1)

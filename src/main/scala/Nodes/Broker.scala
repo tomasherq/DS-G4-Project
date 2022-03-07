@@ -14,7 +14,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
   private val SRT = new RoutingTable()
   private val PRT = new RoutingTable()
   private val NB = ResourceUtilities.getNeighbours(ID)
-  private val ACKS = scala.collection.mutable.Map[(Int, Int), Boolean]() //Tuple is (msg, link)
+  private val ACKS = scala.collection.mutable.Map[((Int, Int), Int), Boolean]() //Tuple is (msg, link)
   private val Groups = List[Int]()
   private val IsActive = scala.collection.mutable.Map[Int, Boolean]() // AdvertisementID
   private val StoredPubs = scala.collection.mutable.Map[Int, List[Int]]() // PublisherID -> list of publications
@@ -27,6 +27,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
     // TODO To implement
   }
 
+
   /**
    * Advertisement methods
    */
@@ -34,28 +35,42 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
     println("Receiving Advertisement")
 
     val content: Advertise = message.content.asInstanceOf[Advertise]
+    val lastHop: Int = message.sender.ID
+    val a: (Int, Int) = content.advertisement.ID
 
-    SRT.addRoute(content.advertisement.ID, message.sender.ID)
-    val nextHops: List[Int] = NB diff List(message.sender.ID)
+    SRT.addRoute(a, lastHop)
+    val nextHops: List[Int] = NB diff List(lastHop)
 
     if (content.guarantee == ACK) {
-
+      if (nextHops.isEmpty) { // Reached an edge broker
+        sendAckResponse(lastHop, message)
+      } else {
+        for (hop <- nextHops) {
+          ACKS += ((a, hop) -> false)
+          startAckTimer(a)
+        }
+      }
     }
 
-
-    if (!subscriptionList.contains(content.advertisement.ID)) {
-      subscriptionList += (content.advertisement.ID -> Subscription(content.advertisement.ID, content.advertisement.pClass, content.advertisement.pAttributes))
+    for (hop <- nextHops) {
+      sendMessage(message, hop) // Flood to next hops
     }
-    println(subscriptionList)
+
+    // Local processing of the message
+    if (!advertisementList.contains(content.advertisement.ID)) {
+      advertisementList += (content.advertisement.ID -> Advertisement(content.advertisement.ID, content.advertisement.pClass, content.advertisement.pAttributes))
+    }
+    println(advertisementList)
   }
+
   def receiveUnadvertisement(message: Message): Unit = {
     println("Receiving Unadvertisement")
     val content: Unadvertise = message.content.asInstanceOf[Unadvertise]
 
-    if(subscriptionList.contains(content.advertisement.ID)) {
-      subscriptionList -= content.advertisement.ID
+    if(advertisementList.contains(content.advertisement.ID)) {
+      advertisementList -= content.advertisement.ID
     }
-    println(subscriptionList)
+    println(advertisementList)
   }
 
   /**
@@ -82,7 +97,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
   /**
    * Ack methods
    */
-  def sendAckResponse(): Unit = {
+  def sendAckResponse(ID: Int, message: Message): Unit = {
     println("Sending Ack Response")
     // TODO To be implemented
   }
