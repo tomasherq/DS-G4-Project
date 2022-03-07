@@ -40,7 +40,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
 
   def processSubscription(content: Subscribe): Unit = {
     if (!subscriptionList.contains(content.subscription.ID)) {
-      subscriptionList += (content.subscription.ID -> Advertisement(content.subscription.ID, content.subscription.pClass, content.subscription.pAttributes))
+      subscriptionList += (content.subscription.ID -> Subscription(content.subscription.ID, content.subscription.pClass, content.subscription.pAttributes))
       println(subscriptionList)
     }
   }
