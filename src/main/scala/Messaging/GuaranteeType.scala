@@ -3,6 +3,6 @@ package Messaging
 object GuaranteeType extends Enumeration {
 
   type GuaranteeType = Value
-  val NONE, ACK, ID, TIME = Value
+  val NONE, ACK, GROUPID, TIME = Value
 
 }

@@ -5,6 +5,8 @@ import Messaging._
 import Misc.ResourceUtilities
 import Routing.RoutingTable
 
+import scala.collection.mutable.ListBuffer
+
 class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
 
   private val subscriptionList = scala.collection.mutable.Map[(Int, Int), Subscription]()
@@ -16,8 +18,8 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
   private val PRT = new RoutingTable()
   private val NB = ResourceUtilities.getNeighbours(ID)
   private val Groups = List[Int]()
-  private val IsActive = scala.collection.mutable.Map[(Int, Int), Boolean]() // AdvertisementID
-  private val StoredPubs = scala.collection.mutable.Map[(Int, Int), List[Int]]() // PublisherID -> list of publications
+  private val IsActive = scala.collection.mutable.Map[(Int, Int), Boolean]()
+  private val StoredPubs = scala.collection.mutable.Map[(Int, Int), List[Int]]()
 
   /**
    * Advertisement methods
@@ -46,7 +48,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
 
     lastHops += ((messageType, a) -> lastHop)
 
-    SRT.addRoute(a, lastHop)
+    SRT.addRoute(a, lastHop, content.advertisement.pClass, content.advertisement.pAttributes)
     val nextHops: List[Int] = NB diff List(lastHop)
 
     if (content.guarantee == ACK) {
@@ -86,8 +88,8 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
         sendACK(messageType, a, lastHop)
       } else {
         for (hop <- nextHops) {
-          ACKS += ((messageType, a, hop) -> false)
           startAckTimer(messageType, a)
+          ACKS += ((messageType, a, hop) -> false)
         }
       }
     }
@@ -105,7 +107,52 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
    */
   def receiveSubscription(message: Message): Unit = {
     println("Receiving Subscription")
-    // TODO To be implemented
+
+    val content: Subscribe = message.content.asInstanceOf[Subscribe]
+    val messageType: String = content.getClass.toString
+    val lastHop: Int = message.sender.ID
+    val s: (Int, Int) = content.subscription.ID
+
+    val isEB = (NB diff List(lastHop)).isEmpty
+
+    lastHops += ((messageType, s) -> lastHop)
+
+    val advs: List[(Int, Int)] = SRT.findMatch(content.subscription)
+
+    val nextHops: ListBuffer[Int] = null
+    for (ad <- advs) {
+      nextHops += SRT.getRoute(ad)._1
+    }
+
+    val coverSub: List[Int] = findCoveringSub()
+
+    PRT.addRoute(s, lastHop, content.subscription.pClass, content.subscription.pAttributes)
+
+    content.guarantee match {
+      case ACK =>
+        if (isEB) {
+          IsActive += (s -> false)
+        }
+        if (coverSub.nonEmpty || nextHops.isEmpty) {
+          if (isEB) {
+            IsActive += (s -> true)
+          }
+          sendACK(messageType, s, lastHop)
+        } else {
+          for (hop <- nextHops) {
+            startAckTimer(messageType, s)
+            ACKS += ((messageType, s, hop) -> false)
+            for (hop <- nextHops) {
+              println("Forwarding Subscription to " + hop)
+              sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp()), hop) // Flood to next hops
+            }
+          }
+        }
+      case TIME => ???
+      case GROUPID => ???
+      case NONE =>
+    }
+
   }
 
   def receiveUnsubscription(message: Message): Unit = {
@@ -124,7 +171,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
   }
 
   def sendTimeOut(): Unit = {
-    // TODO To be implemented
+    // TODO To be implemented, not strictly necessary
   }
 
   def receiveACK(message: Message): Unit = {
@@ -160,6 +207,11 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
       }
     }
     true
+  }
+
+  def findCoveringSub(): List[Int] = {
+    // TODO find the covering sub. This is an optimization. s′∈ PRT : s' ⊆ s
+    null
   }
 
   override def execute(): Unit = {

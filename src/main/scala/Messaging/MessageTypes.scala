@@ -5,9 +5,9 @@ import Messaging.GuaranteeType.GuaranteeType
 trait MessageType
 
 @SerialVersionUID(1L)
-case class Subscribe(advertisementID: (Int, Int), subscriberID: Int) extends Serializable with MessageType
+case class Subscribe(subscription: Subscription, guarantee: GuaranteeType) extends Serializable with MessageType
 @SerialVersionUID(1L)
-case class Unsubscribe(advertisementID: (Int, Int), subscriberID: Int) extends Serializable with MessageType
+case class Unsubscribe(subscription: Subscription, guarantee: GuaranteeType) extends Serializable with MessageType
 
 @SerialVersionUID(1L)
 case class Advertise(advertisement: Advertisement, guarantee: GuaranteeType) extends Serializable with MessageType

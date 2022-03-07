@@ -1,14 +1,16 @@
 package Routing
 
+import Messaging.Subscription
+
 class RoutingTable {
 
-  private val table = scala.collection.mutable.Map[(Int, Int), Int]()
+  private var table = scala.collection.mutable.Map[(Int, Int), (Int, String, List[Int => Boolean])]()
 
-  def addRoute(ID: (Int, Int), Destination: Int): Unit = {
-    table += (ID -> Destination)
+  def addRoute(ID: (Int, Int), Destination: Int, pClass: String, pAttribute: List[Int => Boolean]): Unit = {
+    table += (ID -> (Destination, pClass, pAttribute))
   }
 
-  def getRoute(ID: (Int, Int)): Int = {
+  def getRoute(ID: (Int, Int)): (Int, String, List[Int => Boolean]) = {
     table(ID)
   }
 
@@ -18,6 +20,11 @@ class RoutingTable {
 
   def deleteRoute(ID: (Int, Int)): Unit = {
     table -= ID
+  }
+
+  def findMatch(subscription: Subscription): List[(Int, Int)] = {
+    // TODO match subscription class and attributes against the advertisements in the table
+    null
   }
 
 }
