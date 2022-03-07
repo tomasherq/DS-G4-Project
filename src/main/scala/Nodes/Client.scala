@@ -8,6 +8,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
 
   private val subscriptionList = scala.collection.mutable.Map[(Int, Int), Subscription]()
   private val advertisementList = scala.collection.mutable.Map[(Int, Int), Advertisement]()
+  private val waitingForACK = scala.collection.mutable.Set[(String, (Int, Int))]()
 
   /**
    * Advertisement methods
@@ -22,10 +23,10 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
     sendMessage(new Message(getMessageID(), SocketData, brokerID, content, getCurrentTimestamp()), brokerID)
 
     advertisementList += (adID -> advertisement)
+    waitingForACK += ((content.getClass.toString, adID))
     counters += ("Advertisements" -> (counters("Advertisements")+1))
 
     println(advertisementList)
-    // TODO finish method
   }
 
   def sendUnadvertisement(advertisement: Advertisement, guarantee: GuaranteeType): Unit = {
@@ -34,10 +35,10 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
     val content = Unadvertise(advertisement, guarantee)
     sendMessage(new Message(getMessageID(), SocketData, brokerID, content, getCurrentTimestamp()), brokerID)
 
-    advertisementList -= ((ID, counters("Advertisements")))
+    advertisementList -= advertisement.ID
+    waitingForACK += ((content.getClass.toString, content.advertisement.ID))
 
     println(advertisementList)
-    // TODO To be implemented
   }
 
   /**
@@ -70,27 +71,34 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
     // TODO To be implemented
   }
 
+  /**
+   * Ack methods
+   */
   def receiveACK(message: Message): Unit = {
     println("Receiving ACK from " + message.sender.ID)
 
     val ACK = message.content.asInstanceOf[AckResponse]
     val messageType = ACK.messageType
 
-    println("Succesfully installed " + ACK.ID + " " + messageType)
+    waitingForACK -= ((messageType, ACK.ID))
+
+    println("Successfully installed " + ACK.ID + " " + messageType)
   }
 
   /**
    * Simulate random  behaviour
    */
   private def simulateClientBehaviour(): Unit = {
-    val option = randomGenerator.nextInt(5000)
+    val option = randomGenerator.nextInt(500)
 
     if (mode == PUBLISHER) {
       option match {
-        case x if x > 0 && x <= 19 => sendAdvertisement("Test", List((x: Int) => x < 10), ACK)
-        //case 20 => sendUnadvertisement()
-        //case x if x > 20 && x <= 29 => sendUnadvertisement()
-        //case 30 => sendACK()
+        case x if x == 1 =>
+          sendAdvertisement("Test", List((x: Int) => x < 10), ACK)
+        case x if advertisementList.nonEmpty && x == 100 =>
+          if (!waitingForACK.contains("Message.Advertise", advertisementList.head._1)) {
+            sendUnadvertisement(advertisementList.head._2, ACK)
+          }
         case _ =>
       }
     }

@@ -19,10 +19,28 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
   private val IsActive = scala.collection.mutable.Map[(Int, Int), Boolean]() // AdvertisementID
   private val StoredPubs = scala.collection.mutable.Map[(Int, Int), List[Int]]() // PublisherID -> list of publications
 
-
   /**
    * Advertisement methods
    */
+  def clearUnadvertisements(content: Advertise): Unit = {
+    // TODO Clear unadvertisement data in ACKS and LastHops and TimeStamps
+  }
+
+  def processAdvertisements(content: Advertise): Unit = {
+    if (!advertisementList.contains(content.advertisement.ID)) {
+      advertisementList += (content.advertisement.ID -> Advertisement(content.advertisement.ID, content.advertisement.pClass, content.advertisement.pAttributes))
+      println(advertisementList)
+    }
+  }
+
+  def clearAdvertisements(content: Unadvertise): Unit = {
+    if(advertisementList.contains(content.advertisement.ID)) {
+      advertisementList -= content.advertisement.ID
+      println(advertisementList)
+    }
+    //TODO clear advertisement from ACKS and LastHops and TimeStamps
+  }
+
   def receiveAdvertisement(message: Message): Unit = {
     println("Receiving Advertisement from " + message.sender.ID)
 
@@ -52,12 +70,10 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
       sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp()), hop) // Flood to next hops
     }
 
-    // Local processing of the message
-    if (!advertisementList.contains(content.advertisement.ID)) {
-      advertisementList += (content.advertisement.ID -> Advertisement(content.advertisement.ID, content.advertisement.pClass, content.advertisement.pAttributes))
-    }
-    println(advertisementList)
+    processAdvertisements(content)
+    clearUnadvertisements(content)
   }
+
 
   def receiveUnadvertisement(message: Message): Unit = {
     println("Receiving Unadvertisement from " + message.sender.ID)
@@ -88,10 +104,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
       sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp()), hop) // Flood to next hops
     }
 
-    if(advertisementList.contains(content.advertisement.ID)) {
-      advertisementList -= content.advertisement.ID
-    }
-    println(advertisementList)
+    clearAdvertisements(content)
   }
 
   /**
@@ -127,7 +140,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
     val ACK = message.content.asInstanceOf[AckResponse]
     val messageType = ACK.messageType
 
-    if ((message.timestamp.getTime - timestamps(messageType, ACK.ID).getTime) < 3000) {
+    if ((message.timestamp.getTime - timestamps(messageType, ACK.ID).getTime) < 1500) {
 
       println("Processing of ACK took: " + (message.timestamp.getTime - timestamps(messageType, ACK.ID).getTime) + "ms")
 

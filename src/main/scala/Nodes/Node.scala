@@ -18,12 +18,6 @@ abstract class Node(val ID: Int) {
   protected val counters: mutable.Map[String, Int] = scala.collection.mutable.Map[String, Int]()
   protected val timestamps: mutable.Map[(String, (Int, Int)), TimeStamp] = scala.collection.mutable.Map[(String, (Int, Int)), TimeStamp]()
   protected val ACKS: mutable.Map[(String, (Int, Int), Int), Boolean] = scala.collection.mutable.Map[(String, (Int, Int), Int), Boolean]()
-  /**
-   * This list has to be accessed to see the historic, only remove if ACK sent
-   * We have a list of the ones we sent and received
-   */
-  private var messagesSent = scala.collection.mutable.Map[Int, Message]()
-  private var messagesReceived = scala.collection.mutable.Map[Int, Message]()
 
   def getNodeIP(): String = {
     SocketData.address
