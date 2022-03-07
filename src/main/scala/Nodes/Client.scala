@@ -110,7 +110,10 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
     super.startReceiver()
 
     while (true) {
-      Thread.sleep(20)
+      val rand = new scala.util.Random
+      val randomNetworkDelay = 20 + rand.nextInt(( 40 - 20) + 1)
+      Thread.sleep(randomNetworkDelay)
+      
       while (!receiver.isQueueEmpty) {
         println("Retrieving a new message...")
         val message = receiver.getFirstFromQueue()
