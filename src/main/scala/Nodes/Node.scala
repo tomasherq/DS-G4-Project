@@ -1,7 +1,7 @@
 package Nodes
 
 import Communication.{ReceiverSocket, SenderSocket, SocketData}
-import Messaging.Message
+import Messaging.{AckResponse, Message}
 import Misc.ResourceUtilities
 import org.apache.commons.net.ntp.TimeStamp
 
@@ -45,7 +45,9 @@ abstract class Node(val ID: Int) {
    */
   def sendACK(ID: Int, message: Message): Unit = {
     println("Sending Ack Response")
-    // TODO To be implemented
+
+    val ACK = AckResponse(message.content)
+    sendMessage(new Message(getMessageID(), SocketData, ID, ACK, getCurrentTimestamp()), ID)
   }
 
   def receiveACK(message: Message): Unit = {

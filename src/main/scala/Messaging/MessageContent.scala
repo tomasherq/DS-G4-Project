@@ -1,7 +1,5 @@
 package Messaging
 
-import Messaging.GuaranteeType.GuaranteeType
-
 trait MessageContent
 
 @SerialVersionUID(1L)

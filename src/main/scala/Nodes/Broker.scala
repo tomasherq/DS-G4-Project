@@ -14,11 +14,10 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
   private val SRT = new RoutingTable()
   private val PRT = new RoutingTable()
   private val NB = ResourceUtilities.getNeighbours(ID)
-  private val ACKS = scala.collection.mutable.Map[((Int, Int), Int), Boolean]() //Tuple is (msg, link)
+  private val ACKS = scala.collection.mutable.Map[((Int, Int), Int), Boolean]()
   private val Groups = List[Int]()
   private val IsActive = scala.collection.mutable.Map[Int, Boolean]() // AdvertisementID
   private val StoredPubs = scala.collection.mutable.Map[Int, List[Int]]() // PublisherID -> list of publications
-
 
   /**
    * Advertisement methods
@@ -45,7 +44,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
     }
 
     for (hop <- nextHops) {
-      sendMessage(message, hop) // Flood to next hops
+      sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp()), hop) // Flood to next hops
     }
 
     // Local processing of the message
@@ -57,7 +56,28 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
 
   def receiveUnadvertisement(message: Message): Unit = {
     println("Receiving Unadvertisement")
+
     val content: Unadvertise = message.content.asInstanceOf[Unadvertise]
+    val lastHop: Int = message.sender.ID
+    val a: (Int, Int) = content.advertisement.ID
+
+    SRT.deleteRoute(a)
+    val nextHops: List[Int] = NB diff List(lastHop)
+
+    if (content.guarantee == ACK) {
+      if (nextHops.isEmpty) { // Reached an edge broker
+        sendACK(lastHop, message)
+      } else {
+        for (hop <- nextHops) {
+          ACKS += ((a, hop) -> false) // TODO Find out if this needs to be a separate entity for unadvertisements?
+          startAckTimer(a)
+        }
+      }
+    }
+
+    for (hop <- nextHops) {
+      sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp()), hop) // Flood to next hops
+    }
 
     if(advertisementList.contains(content.advertisement.ID)) {
       advertisementList -= content.advertisement.ID
@@ -78,14 +98,6 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
     // TODO To be implemented
   }
 
-  /**
-   * Publication methods
-   */
-  def receiveTimedPubRequest(message: Message): Unit = {
-    println("Receiving Publish Request")
-    // TODO To be implemented
-  }
-
   override def execute(): Unit = {
     super.execute()
     super.startReceiver()
@@ -99,12 +111,11 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
         val message = receiver.getFirstFromQueue()
 
         message.content match {
-          case _: Advertise => receiveAdvertisement(message)
-          case _: Unadvertise => receiveUnadvertisement(message)
-          case _: Subscribe => receiveSubscription(message)
-          case _: Unsubscribe => receiveUnsubscription(message)
-          case _: AckRequest => receiveACK(message)
-          case _: TimedPublishRequest => receiveTimedPubRequest(message)
+          case _ : Advertise => receiveAdvertisement(message)
+          case _ : Unadvertise => receiveUnadvertisement(message)
+          case _ : Subscribe => receiveSubscription(message)
+          case _ : Unsubscribe => receiveUnsubscription(message)
+          case _ : AckResponse => receiveACK(message)
         }
         receiver.emptyQueue() // Process the message, this should be individual
       }

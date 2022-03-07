@@ -15,11 +15,7 @@ case class Advertise(advertisement: Advertisement, guarantee: GuaranteeType) ext
 case class Unadvertise(advertisement: Advertisement, guarantee: GuaranteeType) extends Serializable with MessageType
 
 @SerialVersionUID(1L)
-case class AckRequest(messageID: Int, nodeID: Int) extends Serializable with MessageType
-@SerialVersionUID(1L)
-case class AckResponse(messageID: Int, nodeID: Int) extends Serializable with MessageType
+case class AckResponse(content: MessageType) extends Serializable with MessageType
 
 @SerialVersionUID(1L)
 case class Publish(content: Any, publicationID: Int) extends Serializable with MessageType
-@SerialVersionUID(1L)
-case class TimedPublishRequest(publicationID: Int, subscriberID: Int, timestamp: Int) extends Serializable with MessageType

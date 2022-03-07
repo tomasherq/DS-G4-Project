@@ -1,6 +1,6 @@
 package Nodes
 
-import Messaging.GuaranteeType.NONE
+import Messaging.GuaranteeType._
 import Messaging._
 import Nodes.ClientType.{ClientType, PUBLISHER, SUBSCRIBER}
 
@@ -12,12 +12,12 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
   /**
    * Advertisement methods
    */
-  def sendAdvertisement(pClass: String, pAttributes: List[Int => Boolean]): Unit = {
+  def sendAdvertisement(pClass: String, pAttributes: List[Int => Boolean], guarantee: GuaranteeType): Unit = {
     println("Sending Advertisement")
 
     val adID: (Int, Int) = (ID, counters("Advertisements"))
     val advertisement = Advertisement(adID, pClass, pAttributes)
-    val content = Advertise(advertisement, NONE)
+    val content = Advertise(advertisement, guarantee)
 
     sendMessage(new Message(getMessageID(), SocketData, brokerID, content, getCurrentTimestamp()), brokerID)
 
@@ -28,10 +28,10 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
     // TODO finish method
   }
 
-  def sendUnadvertisement(advertisement: Advertisement): Unit = {
+  def sendUnadvertisement(advertisement: Advertisement, guarantee: GuaranteeType): Unit = {
     println("Sending Unadvertisement")
 
-    val content = Unadvertise(advertisement, NONE)
+    val content = Unadvertise(advertisement, guarantee)
     sendMessage(new Message(getMessageID(), SocketData, brokerID, content, getCurrentTimestamp()), brokerID)
 
     advertisementList -= ((ID, counters("Advertisements")))
@@ -83,7 +83,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
 
     if (mode == PUBLISHER) {
       option match {
-        //case x if x > 0 && x <= 19 => sendAdvertisement()
+        case x if x > 0 && x <= 19 => sendAdvertisement("Test", List((x: Int) => x < 10), ACK)
         //case 20 => sendUnadvertisement()
         //case x if x > 20 && x <= 29 => sendUnadvertisement()
         //case 30 => sendACK()
