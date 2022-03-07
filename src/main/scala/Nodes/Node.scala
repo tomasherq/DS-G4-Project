@@ -1,10 +1,11 @@
 package Nodes
 
 import Communication.{ReceiverSocket, SenderSocket, SocketData}
-import Messaging.{AckResponse, Message, MessageType}
+import Messaging.Message
 import Misc.ResourceUtilities
 import org.apache.commons.net.ntp.TimeStamp
 
+import scala.collection.mutable
 import scala.language.implicitConversions
 
 abstract class Node(val ID: Int) {
@@ -14,9 +15,9 @@ abstract class Node(val ID: Int) {
   protected val sender: SenderSocket = new SenderSocket()
   protected val randomGenerator: scala.util.Random = scala.util.Random
 
-  protected val counters = scala.collection.mutable.Map[String, Int]()
-  protected val timestamps = scala.collection.mutable.Map[(String, (Int, Int)), TimeStamp]()
-  protected val ACKS = scala.collection.mutable.Map[(String, (Int, Int), Int), Boolean]()
+  protected val counters: mutable.Map[String, Int] = scala.collection.mutable.Map[String, Int]()
+  protected val timestamps: mutable.Map[(String, (Int, Int)), TimeStamp] = scala.collection.mutable.Map[(String, (Int, Int)), TimeStamp]()
+  protected val ACKS: mutable.Map[(String, (Int, Int), Int), Boolean] = scala.collection.mutable.Map[(String, (Int, Int), Int), Boolean]()
   /**
    * This list has to be accessed to see the historic, only remove if ACK sent
    * We have a list of the ones we sent and received
@@ -38,21 +39,6 @@ abstract class Node(val ID: Int) {
 
   def getCurrentTimestamp(): TimeStamp = {
     TimeStamp.getCurrentTime
-  }
-
-  /**
-   * Ack methods
-   */
-  def sendACK(ID: Int, message: Message): Unit = {
-    println("Sending Ack Response")
-
-    val ACK = AckResponse(message.content)
-    sendMessage(new Message(getMessageID(), SocketData, ID, ACK, getCurrentTimestamp()), ID)
-  }
-
-  def receiveACK(message: Message): Unit = {
-    println("Receiving Ack Response")
-    // TODO To be implemented
   }
 
   /**

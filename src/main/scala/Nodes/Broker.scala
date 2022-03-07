@@ -10,31 +10,35 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
   private val subscriptionList = scala.collection.mutable.Map[(Int, Int), Subscription]()
   private val advertisementList = scala.collection.mutable.Map[(Int, Int), Advertisement]()
   private val subscriberList = scala.collection.mutable.Map[(Int, Int), Advertisement]()
+  private val lastHops = scala.collection.mutable.Map[(String, (Int, Int)), Int]()
 
   private val SRT = new RoutingTable()
   private val PRT = new RoutingTable()
   private val NB = ResourceUtilities.getNeighbours(ID)
   private val Groups = List[Int]()
-  private val IsActive = scala.collection.mutable.Map[Int, Boolean]() // AdvertisementID
-  private val StoredPubs = scala.collection.mutable.Map[Int, List[Int]]() // PublisherID -> list of publications
+  private val IsActive = scala.collection.mutable.Map[(Int, Int), Boolean]() // AdvertisementID
+  private val StoredPubs = scala.collection.mutable.Map[(Int, Int), List[Int]]() // PublisherID -> list of publications
+
 
   /**
    * Advertisement methods
    */
   def receiveAdvertisement(message: Message): Unit = {
-    println("Receiving Advertisement")
+    println("Receiving Advertisement from " + message.sender.ID)
 
     val content: Advertise = message.content.asInstanceOf[Advertise]
     val messageType: String = content.getClass.toString
     val lastHop: Int = message.sender.ID
     val a: (Int, Int) = content.advertisement.ID
 
+    lastHops += ((messageType, a) -> lastHop)
+
     SRT.addRoute(a, lastHop)
     val nextHops: List[Int] = NB diff List(lastHop)
 
     if (content.guarantee == ACK) {
       if (nextHops.isEmpty) { // Reached an edge broker
-        sendACK(lastHop, message)
+        sendACK(messageType, a, lastHop)
       } else {
         for (hop <- nextHops) {
           ACKS += ((messageType, a, hop) -> false)
@@ -44,6 +48,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
     }
 
     for (hop <- nextHops) {
+      println("Forwarding Advertisement to " + hop)
       sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp()), hop) // Flood to next hops
     }
 
@@ -55,19 +60,21 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
   }
 
   def receiveUnadvertisement(message: Message): Unit = {
-    println("Receiving Unadvertisement")
+    println("Receiving Unadvertisement from " + message.sender.ID)
 
     val content: Unadvertise = message.content.asInstanceOf[Unadvertise]
     val messageType: String = content.getClass.toString
     val lastHop: Int = message.sender.ID
     val a: (Int, Int) = content.advertisement.ID
 
+    lastHops += ((messageType, a) -> lastHop)
+
     SRT.deleteRoute(a)
     val nextHops: List[Int] = NB diff List(lastHop)
 
     if (content.guarantee == ACK) {
       if (nextHops.isEmpty) { // Reached an edge broker
-        sendACK(lastHop, message)
+        sendACK(messageType, a, lastHop)
       } else {
         for (hop <- nextHops) {
           ACKS += ((messageType, a, hop) -> false)
@@ -77,6 +84,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
     }
 
     for (hop <- nextHops) {
+      println("Forwarding Advertisement to " + hop)
       sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp()), hop) // Flood to next hops
     }
 
@@ -97,6 +105,55 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
   def receiveUnsubscription(message: Message): Unit = {
     println("Receiving Unsubscription")
     // TODO To be implemented
+  }
+
+  /**
+   * Ack methods
+   */
+  def sendACK(messageType: String, ID: (Int, Int), lastHop: Int): Unit = {
+    println("Sending Ack Response to " + lastHop)
+
+    val ACK = AckResponse(messageType, ID)
+    sendMessage(new Message(getMessageID(), SocketData, lastHop, ACK, getCurrentTimestamp()), lastHop)
+  }
+
+  def sendTimeOut(): Unit = {
+    // TODO To be implemented
+  }
+
+  def receiveACK(message: Message): Unit = {
+    println("Receiving Ack Response from " + message.sender.ID)
+
+    val ACK = message.content.asInstanceOf[AckResponse]
+    val messageType = ACK.messageType
+
+    if ((message.timestamp.getTime - timestamps(messageType, ACK.ID).getTime) < 3000) {
+
+      println("Processing of ACK took: " + (message.timestamp.getTime - timestamps(messageType, ACK.ID).getTime) + "ms")
+
+      ACKS += ((messageType, ACK.ID, message.sender.ID) -> true)
+
+      if (receivedAllPendingACKS(messageType, ACK.ID, message.sender.ID)) {
+        if ((ACK.messageType == "Message.Subscribe" || ACK.messageType == "Message.Unsubscribe" ) && endpoints.contains(ACK.ID._1)) {
+          IsActive += (ACK.ID -> true)
+        }
+        val destinationID = lastHops(messageType, ACK.ID)
+        println("Sending ACK Response to " + destinationID)
+        sendMessage(new Message(getMessageID(), SocketData, destinationID, ACK, getCurrentTimestamp()), destinationID)
+      }
+    } else {
+      sendTimeOut()
+    }
+
+  }
+
+  def receivedAllPendingACKS(messageType: String, ACKID: (Int, Int), senderID: Int): Boolean = {
+    for (neighbourBroker <- NB diff List(senderID)) {
+      if (ACKS.contains(messageType, ACKID, neighbourBroker) && !ACKS(messageType, ACKID, neighbourBroker)) {
+        return false
+      }
+    }
+    true
   }
 
   override def execute(): Unit = {

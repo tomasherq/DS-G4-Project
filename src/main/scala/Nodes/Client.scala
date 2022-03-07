@@ -13,7 +13,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
    * Advertisement methods
    */
   def sendAdvertisement(pClass: String, pAttributes: List[Int => Boolean], guarantee: GuaranteeType): Unit = {
-    println("Sending Advertisement")
+    println("Sending Advertisement to " + brokerID)
 
     val adID: (Int, Int) = (ID, counters("Advertisements"))
     val advertisement = Advertisement(adID, pClass, pAttributes)
@@ -29,7 +29,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
   }
 
   def sendUnadvertisement(advertisement: Advertisement, guarantee: GuaranteeType): Unit = {
-    println("Sending Unadvertisement")
+    println("Sending Unadvertisement to " + brokerID)
 
     val content = Unadvertise(advertisement, guarantee)
     sendMessage(new Message(getMessageID(), SocketData, brokerID, content, getCurrentTimestamp()), brokerID)
@@ -70,10 +70,14 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
     // TODO To be implemented
   }
 
-  /**
-   * Ack methods
-   */
+  def receiveACK(message: Message): Unit = {
+    println("Receiving ACK from " + message.sender.ID)
 
+    val ACK = message.content.asInstanceOf[AckResponse]
+    val messageType = ACK.messageType
+
+    println("Succesfully installed " + ACK.ID + " " + messageType)
+  }
 
   /**
    * Simulate random  behaviour
