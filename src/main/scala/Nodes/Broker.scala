@@ -11,15 +11,16 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
 
   private val subscriptionList = scala.collection.mutable.Map[(Int, Int), Subscription]()
   private val advertisementList = scala.collection.mutable.Map[(Int, Int), Advertisement]()
-  private val subscriberList = scala.collection.mutable.Map[(Int, Int), Advertisement]()
   private val lastHops = scala.collection.mutable.Map[(String, (Int, Int)), Int]()
 
   private val SRT = new RoutingTable()
   private val PRT = new RoutingTable()
   private val NB = ResourceUtilities.getNeighbours(ID)
-  private val Groups = List[Int]()
   private val IsActive = scala.collection.mutable.Map[(Int, Int), Boolean]()
   private val StoredPubs = scala.collection.mutable.Map[(Int, Int), List[Int]]()
+
+  // Currently not used, its for GROUPID guarantee
+  private val Groups = List[Int]()
 
   /**
    * Advertisement methods
@@ -184,6 +185,14 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
     // TODO To be implemented
 
     clearSubscription(content)
+  }
+
+  /**
+   * Publication methods
+   */
+  def receivePublication(message: Message): Unit = {
+    println("Receiving Publication")
+    // TODO To be implemented
   }
 
   /**
