@@ -23,7 +23,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
     sendMessage(new Message(getMessageID(), SocketData, brokerID, content, getCurrentTimestamp()), brokerID)
 
     advertisementList += (adID -> advertisement)
-    waitingForACK += ((content.getClass.toString, adID))
+    if (guarantee == ACK) waitingForACK += ((content.getClass.toString, adID))
     counters += ("Advertisements" -> (counters("Advertisements")+1))
 
     println(advertisementList)
@@ -36,7 +36,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
     sendMessage(new Message(getMessageID(), SocketData, brokerID, content, getCurrentTimestamp()), brokerID)
 
     advertisementList -= advertisement.ID
-    waitingForACK += ((content.getClass.toString, content.advertisement.ID))
+    if (guarantee == ACK) waitingForACK += ((content.getClass.toString, content.advertisement.ID))
 
     println(advertisementList)
   }

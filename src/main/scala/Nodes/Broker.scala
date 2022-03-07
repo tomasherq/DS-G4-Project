@@ -38,6 +38,20 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
     }
   }
 
+  def processSubscription(content: Subscribe): Unit = {
+    if (!subscriptionList.contains(content.subscription.ID)) {
+      subscriptionList += (content.subscription.ID -> Advertisement(content.subscription.ID, content.subscription.pClass, content.subscription.pAttributes))
+      println(subscriptionList)
+    }
+  }
+
+  def clearSubscription(content: Unsubscribe): Unit = {
+    if(subscriptionList.contains(content.subscription.ID)) {
+      subscriptionList -= content.subscription.ID
+      println(subscriptionList)
+    }
+  }
+
   def receiveAdvertisement(message: Message): Unit = {
     println("Receiving Advertisement from " + message.sender.ID)
 
@@ -140,24 +154,36 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
           sendACK(messageType, s, lastHop)
         } else {
           for (hop <- nextHops) {
-            startAckTimer(messageType, s)
             ACKS += ((messageType, s, hop) -> false)
-            for (hop <- nextHops) {
-              println("Forwarding Subscription to " + hop)
-              sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp()), hop) // Flood to next hops
-            }
+          }
+          startAckTimer(messageType, s)
+          for (hop <- nextHops) {
+            println("Forwarding Subscription to " + hop)
+            sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp()), hop)
           }
         }
       case TIME => ???
       case GROUPID => ???
       case NONE =>
+        for (hop <- nextHops) {
+          println("Forwarding Subscription to " + hop)
+          sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp()), hop)
+        }
     }
-
+    processSubscription(content)
   }
 
   def receiveUnsubscription(message: Message): Unit = {
     println("Receiving Unsubscription")
+
+    val content: Unsubscribe = message.content.asInstanceOf[Unsubscribe]
+    val messageType: String = content.getClass.toString
+    val lastHop: Int = message.sender.ID
+    val s: (Int, Int) = content.subscription.ID
+
     // TODO To be implemented
+
+    clearSubscription(content)
   }
 
   /**
@@ -168,10 +194,6 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
 
     val ACK = AckResponse(messageType, ID)
     sendMessage(new Message(getMessageID(), SocketData, lastHop, ACK, getCurrentTimestamp()), lastHop)
-  }
-
-  def sendTimeOut(): Unit = {
-    // TODO To be implemented, not strictly necessary
   }
 
   def receiveACK(message: Message): Unit = {
@@ -197,7 +219,6 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
     } else {
       sendTimeOut()
     }
-
   }
 
   def receivedAllPendingACKS(messageType: String, ACKID: (Int, Int), senderID: Int): Boolean = {
@@ -212,6 +233,10 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
   def findCoveringSub(): List[Int] = {
     // TODO find the covering sub. This is an optimization. s′∈ PRT : s' ⊆ s
     null
+  }
+
+  def sendTimeOut(): Unit = {
+    // TODO To be implemented, not strictly necessary
   }
 
   override def execute(): Unit = {
