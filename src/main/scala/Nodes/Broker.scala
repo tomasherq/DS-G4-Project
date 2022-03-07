@@ -19,14 +19,6 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
   private val IsActive = scala.collection.mutable.Map[Int, Boolean]() // AdvertisementID
   private val StoredPubs = scala.collection.mutable.Map[Int, List[Int]]() // PublisherID -> list of publications
 
-  /**
-   * This method will lookup a candidate edge broker that can reach the client if this broker is not its edge broker
-   */
-  def forwardMessage(): Unit = {
-    println("Forwarding Message")
-    // TODO To implement
-  }
-
 
   /**
    * Advertisement methods
@@ -43,7 +35,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
 
     if (content.guarantee == ACK) {
       if (nextHops.isEmpty) { // Reached an edge broker
-        sendAckResponse(lastHop, message)
+        sendACK(lastHop, message)
       } else {
         for (hop <- nextHops) {
           ACKS += ((a, hop) -> false)
@@ -94,19 +86,6 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
     // TODO To be implemented
   }
 
-  /**
-   * Ack methods
-   */
-  def sendAckResponse(ID: Int, message: Message): Unit = {
-    println("Sending Ack Response")
-    // TODO To be implemented
-  }
-
-  def receiveAckRequest(message: Message): Unit = {
-    println("Sending Ack Request")
-    // TODO To be implemented
-  }
-
   override def execute(): Unit = {
     super.execute()
     super.startReceiver()
@@ -124,7 +103,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
           case _: Unadvertise => receiveUnadvertisement(message)
           case _: Subscribe => receiveSubscription(message)
           case _: Unsubscribe => receiveUnsubscription(message)
-          case _: AckRequest => receiveAckRequest(message)
+          case _: AckRequest => receiveACK(message)
           case _: TimedPublishRequest => receiveTimedPubRequest(message)
         }
         receiver.emptyQueue() // Process the message, this should be individual

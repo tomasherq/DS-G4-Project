@@ -41,6 +41,19 @@ abstract class Node(val ID: Int) {
   }
 
   /**
+   * Ack methods
+   */
+  def sendACK(ID: Int, message: Message): Unit = {
+    println("Sending Ack Response")
+    // TODO To be implemented
+  }
+
+  def receiveACK(message: Message): Unit = {
+    println("Receiving Ack Response")
+    // TODO To be implemented
+  }
+
+  /**
    * sendMessage wrapper for client -> broker
    */
   def sendMessage(message: Message, DestinationID: Int): Unit = {

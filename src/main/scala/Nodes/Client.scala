@@ -73,15 +73,6 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
   /**
    * Ack methods
    */
-  def receiveAckResponse(message: Message): Unit = {
-    println("Receiving Ack Response")
-    // TODO To be implemented
-  }
-
-  def sendAckRequest(): Unit = {
-    println("Sending Ack Request")
-    // TODO To be implemented
-  }
 
 
   /**
@@ -95,7 +86,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
         //case x if x > 0 && x <= 19 => sendAdvertisement()
         //case 20 => sendUnadvertisement()
         //case x if x > 20 && x <= 29 => sendUnadvertisement()
-        case 30 => sendAckRequest()
+        //case 30 => sendACK()
         case _ =>
       }
     }
@@ -123,7 +114,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
         val message = receiver.getFirstFromQueue()
 
         message.content match {
-          case _ : AckResponse => receiveAckResponse(message)
+          case _ : AckResponse => receiveACK(message)
           case _ : Publication => receivePublication(message)
         }
         receiver.emptyQueue() // Process the message, this should be individual
