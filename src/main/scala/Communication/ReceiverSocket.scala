@@ -9,7 +9,7 @@ import scala.collection.mutable
 
 class ReceiverSocket(val SocketData: SocketData) extends Thread {
 
-  private var messageQueue = mutable.Queue[Message]()
+  private val messageQueue = mutable.Queue[Message]()
 
   def getFirstFromQueue(): Message = {
     messageQueue.dequeue()
@@ -17,10 +17,6 @@ class ReceiverSocket(val SocketData: SocketData) extends Thread {
 
   def isQueueEmpty(): Boolean = {
     messageQueue.isEmpty
-  }
-
-  def emptyQueue(): Unit = {
-    messageQueue = mutable.Queue[Message]()
   }
 
   override def run(): Unit = {

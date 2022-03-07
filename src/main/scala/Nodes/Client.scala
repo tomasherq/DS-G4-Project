@@ -117,7 +117,6 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
           case _ : AckResponse => receiveACK(message)
           case _ : Publication => receivePublication(message)
         }
-        receiver.emptyQueue() // Process the message, this should be individual
       }
       simulateClientBehaviour()
     }

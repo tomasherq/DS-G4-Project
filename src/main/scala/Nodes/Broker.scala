@@ -14,7 +14,6 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
   private val SRT = new RoutingTable()
   private val PRT = new RoutingTable()
   private val NB = ResourceUtilities.getNeighbours(ID)
-  private val ACKS = scala.collection.mutable.Map[((Int, Int), Int), Boolean]()
   private val Groups = List[Int]()
   private val IsActive = scala.collection.mutable.Map[Int, Boolean]() // AdvertisementID
   private val StoredPubs = scala.collection.mutable.Map[Int, List[Int]]() // PublisherID -> list of publications
@@ -26,6 +25,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
     println("Receiving Advertisement")
 
     val content: Advertise = message.content.asInstanceOf[Advertise]
+    val messageType: String = content.getClass.toString
     val lastHop: Int = message.sender.ID
     val a: (Int, Int) = content.advertisement.ID
 
@@ -37,8 +37,8 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
         sendACK(lastHop, message)
       } else {
         for (hop <- nextHops) {
-          ACKS += ((a, hop) -> false)
-          startAckTimer(a)
+          ACKS += ((messageType, a, hop) -> false)
+          startAckTimer(messageType, a)
         }
       }
     }
@@ -58,6 +58,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
     println("Receiving Unadvertisement")
 
     val content: Unadvertise = message.content.asInstanceOf[Unadvertise]
+    val messageType: String = content.getClass.toString
     val lastHop: Int = message.sender.ID
     val a: (Int, Int) = content.advertisement.ID
 
@@ -69,8 +70,8 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
         sendACK(lastHop, message)
       } else {
         for (hop <- nextHops) {
-          ACKS += ((a, hop) -> false) // TODO Find out if this needs to be a separate entity for unadvertisements?
-          startAckTimer(a)
+          ACKS += ((messageType, a, hop) -> false)
+          startAckTimer(messageType, a)
         }
       }
     }
@@ -117,7 +118,6 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
           case _ : Unsubscribe => receiveUnsubscription(message)
           case _ : AckResponse => receiveACK(message)
         }
-        receiver.emptyQueue() // Process the message, this should be individual
       }
     }
   }

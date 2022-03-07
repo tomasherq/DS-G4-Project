@@ -1,7 +1,7 @@
 package Nodes
 
 import Communication.{ReceiverSocket, SenderSocket, SocketData}
-import Messaging.{AckResponse, Message}
+import Messaging.{AckResponse, Message, MessageType}
 import Misc.ResourceUtilities
 import org.apache.commons.net.ntp.TimeStamp
 
@@ -13,10 +13,10 @@ abstract class Node(val ID: Int) {
   protected val receiver: ReceiverSocket = new ReceiverSocket(SocketData)
   protected val sender: SenderSocket = new SenderSocket()
   protected val randomGenerator: scala.util.Random = scala.util.Random
-  /**
-   * Used in all classes to kep track of publications of an advertisement or messages sent
-   */
-   var counters: scala.collection.mutable.Map[String, Int] = scala.collection.mutable.Map[String, Int]()
+
+  protected val counters = scala.collection.mutable.Map[String, Int]()
+  protected val timestamps = scala.collection.mutable.Map[(String, (Int, Int)), TimeStamp]()
+  protected val ACKS = scala.collection.mutable.Map[(String, (Int, Int), Int), Boolean]()
   /**
    * This list has to be accessed to see the historic, only remove if ACK sent
    * We have a list of the ones we sent and received
@@ -68,8 +68,8 @@ abstract class Node(val ID: Int) {
     t.start()
   }
 
-  def startAckTimer(a: (Int, Int)): Unit = {
-    // TODO No idea yet what this should do
+  def startAckTimer(messageType: String, ID: (Int, Int)): Unit = {
+    timestamps += ((messageType, ID) -> TimeStamp.getCurrentTime)
   }
 
   def initializeCounters(): Unit = {
