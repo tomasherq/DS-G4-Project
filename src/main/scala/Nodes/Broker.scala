@@ -22,23 +22,18 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
   /**
    * Advertisement methods
    */
-  def clearUnadvertisements(content: Advertise): Unit = {
-    // TODO Clear unadvertisement data in ACKS and LastHops and TimeStamps
-  }
-
-  def processAdvertisements(content: Advertise): Unit = {
+  def processAdvertisement(content: Advertise): Unit = {
     if (!advertisementList.contains(content.advertisement.ID)) {
       advertisementList += (content.advertisement.ID -> Advertisement(content.advertisement.ID, content.advertisement.pClass, content.advertisement.pAttributes))
       println(advertisementList)
     }
   }
 
-  def clearAdvertisements(content: Unadvertise): Unit = {
+  def clearAdvertisement(content: Unadvertise): Unit = {
     if(advertisementList.contains(content.advertisement.ID)) {
       advertisementList -= content.advertisement.ID
       println(advertisementList)
     }
-    //TODO clear advertisement from ACKS and LastHops and TimeStamps
   }
 
   def receiveAdvertisement(message: Message): Unit = {
@@ -70,10 +65,8 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
       sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp()), hop) // Flood to next hops
     }
 
-    processAdvertisements(content)
-    clearUnadvertisements(content)
+    processAdvertisement(content)
   }
-
 
   def receiveUnadvertisement(message: Message): Unit = {
     println("Receiving Unadvertisement from " + message.sender.ID)
@@ -104,7 +97,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
       sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp()), hop) // Flood to next hops
     }
 
-    clearAdvertisements(content)
+    clearAdvertisement(content)
   }
 
   /**

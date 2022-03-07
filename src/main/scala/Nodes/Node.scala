@@ -28,7 +28,7 @@ abstract class Node(val ID: Int) {
   }
 
   def getMessageID(): (Int, Int) = {
-    (ID, counters("message"))
+    (ID, counters("Message"))
   }
 
   def getCurrentTimestamp(): TimeStamp = {
@@ -40,6 +40,7 @@ abstract class Node(val ID: Int) {
    */
   def sendMessage(message: Message, DestinationID: Int): Unit = {
     val DestinationSocketData = ResourceUtilities.getNodeSocketData(DestinationID)
+    counters += ("Message" -> (counters("Message")+1))
     sender.sendMessage(message, DestinationSocketData.address, DestinationSocketData.port)
   }
 
@@ -53,7 +54,7 @@ abstract class Node(val ID: Int) {
   }
 
   def initializeCounters(): Unit = {
-    counters += ("message" -> 1)
+    counters += ("Message" -> 1)
     counters += ("Advertisements" -> 1)
   }
 
