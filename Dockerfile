@@ -14,17 +14,12 @@ RUN apt-get update
 RUN apt-get -y install git openjdk-17-jre-headless
 
 
-# Clone git repo
-RUN mkdir /home/git_repo
-WORKDIR /home/git_repo
-RUN mkdir -m 700 /root/.ssh; \
-  touch -m 600 /root/.ssh/known_hosts; \
-  ssh-keyscan github.com > /root/.ssh/known_hosts
-# Run docker like this: docker build --ssh github=~/.ssh/id_ed25519 -t testbuild .
-RUN --mount=type=ssh,id=github git clone git@github.com:tomasherq/DS-G4-Project.git
-WORKDIR /home/git_repo/DS-G4-Project
+# Make repo dir and clone git repo
+RUN mkdir /root/git_repo
+WORKDIR /root/git_repo
+RUN git clone https://github.com/tomasherq/DS-G4-Project.git
 
-# Copy the source files from Dockerfile's folder to the image
+# Copy the source files from Dockerfile's folder to the image if you can't clone git
 #COPY . ./project
 #COPY . ./src
 #COPY . ./pom.xml
@@ -41,7 +36,7 @@ RUN mvn -f ./pom.xml clean compile package
 # Copy generated jar file to original place
 #
 FROM runner AS cont_runner
-WORKDIR /home/git_repo/DS-G4-Project
+WORKDIR /root/git_repo/DS-G4-Project
 COPY --from=build ./target ./target
 
 # Default command --> we don't need this as we have the command in the compose file
