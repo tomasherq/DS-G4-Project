@@ -1,32 +1,29 @@
 # A docker-compose must always start by the version tag.
 version: "3.9"
 
-# Set up custom network
-networks:
-  some_network:
-    ipam:
-      driver: default
-      config:
-        - subnet: 172.20.0.0/24
-
 # Define services
 services:
 
-  broker1:
+  client1:
     # Path of Dockerfile
     build: .
 
     # The command to execute once the image is created.
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 1
+    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 1 --BID 2 --mode publisher
 
     networks:
       some_network:
-        ipv4_address: 172.20.0.21
+        ipv4_address: 192.168.1.10
 
     # Port
     # Its syntax is as follows: [port we want on our machine]:[port we want to retrieve in the container]
     ports:
-      - 6969:6969
+      - 1000:1000
+
+    # Here, we want the 'client' service to wait until the 'server' service is ready.
+    #depends_on:
+    #  - broker1
+    #  - broker2
 
   broker2:
     # Path of Dockerfile
@@ -37,57 +34,73 @@ services:
 
     networks:
       some_network:
-        ipv4_address: 172.20.0.22
-
-    # Port
-    # Its syntax is as follows: [port we want on our machine]:[port we want to retrieve in the container]
-    ports:
-      - 6699:6699
-
-  client1:
-    # Path of Dockerfile
-    build: .
-
-    # The command to execute once the image is created.
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 3
-
-    # The keyword 'network_mode' is used to define the network type.
-    # Here we define that the container can access to the 'localhost' of the computer.
-    #network_mode: host
-    ## NOT SURE IF WE NEED THIS
-
-    networks:
-      some_network:
-        ipv4_address: 172.20.0.11
-
-    ports:
-      - 1000:1000
-
-    # Here, we want the 'client' service to wait until the 'server' service is ready.
-    depends_on:
-      - broker1
-      - broker2
-
-  client2:
-    # Path of Dockerfile
-    build: .
-
-    # The command to execute once the image is created.
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 4
-
-    # The keyword 'network_mode' is used to define the network type.
-    # Here we define that the container can access to the 'localhost' of the computer.
-    #network_mode: host
-    ## NOT SURE IF WE NEED THIS
-
-    networks:
-      some_network:
-        ipv4_address: 172.20.0.12
+        ipv4_address: 192.168.1.11
 
     ports:
       - 1001:1001
 
-    # Here, we want the 'client' service to wait until the 'server' service is ready.
-    depends_on:
-      - broker1
-      - broker2
+  broker3:
+    # Path of Dockerfile
+    build: .
+
+    # The command to execute once the image is created.
+    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 3
+
+    networks:
+      some_network:
+        ipv4_address: 192.168.1.12
+
+    ports:
+      - 1002:1002
+
+  broker4:
+    # Path of Dockerfile
+    build: .
+
+    # The command to execute once the image is created.
+    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 4
+
+    networks:
+      some_network:
+        ipv4_address: 192.168.1.13
+
+    ports:
+      - 1003:1003
+
+  broker5:
+    # Path of Dockerfile
+    build: .
+
+    # The command to execute once the image is created.
+    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 5
+
+    networks:
+      some_network:
+        ipv4_address: 192.168.1.14
+
+    ports:
+      - 1004:1004
+
+  #client6:
+    # Path of Dockerfile
+    #build: .
+
+    # The command to execute once the image is created.
+    #command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 6
+
+    #networks:
+    #  some_network:
+    #    ipv4_address: 192.168.1.15
+
+    #ports:
+    #  - 1005:1005
+
+# Set up custom network
+networks:
+  some_network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.0.0/16
+          gateway: 192.168.1.1
