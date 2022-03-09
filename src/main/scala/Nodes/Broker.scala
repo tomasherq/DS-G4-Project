@@ -126,7 +126,12 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
 
     lastHops += ((messageType, s) -> lastHop)
 
+
+
     val advs: List[(Int, Int)] = SRT.findMatch(content.subscription)
+
+
+
     var nextHopsSet: Set[Int] = Set[Int]()
     for (ad <- advs) {
       val candidateDestination = SRT.getRoute(ad)._1

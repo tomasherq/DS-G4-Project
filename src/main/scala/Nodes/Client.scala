@@ -15,7 +15,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
   /**
    * Advertisement methods
    */
-  def sendAdvertisement(pClass: String, pAttributes: List[Int => Boolean], guarantee: GuaranteeType): Unit = {
+  def sendAdvertisement(pClass: String, pAttributes: (String, Int), guarantee: GuaranteeType): Unit = {
     println("Sending Advertisement to " + brokerID)
 
     val adID: (Int, Int) = (ID, counters("Advertisements"))
@@ -46,7 +46,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
   /**
    * Subscription methods
    */
-  def sendSubscription(pClass: String, pAttributes: List[Int => Boolean], guarantee: GuaranteeType): Unit = {
+  def sendSubscription(pClass: String, pAttributes: (String, Int), guarantee: GuaranteeType): Unit = {
     println("Sending Subscription to " + brokerID)
 
     val subID: (Int, Int) = (ID, counters("Subscriptions"))
@@ -110,7 +110,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
     if (mode == PUBLISHER) {
       option match {
         case x if x == 1 =>
-          sendAdvertisement("Test", List((x: Int) => x < 10), ACK)
+          sendAdvertisement("Test", ("gt",10), ACK)
         case x if advertisementList.nonEmpty && x == 5 =>
           if (!waitingForACK.contains("Message.Advertise", advertisementList.head._1)) {
             sendUnadvertisement(advertisementList.head._2, ACK)
@@ -121,7 +121,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
     if (mode == SUBSCRIBER) {
       option match {
         case x if x == 10  =>
-          sendSubscription("Test", List((x: Int) => x < 10), ACK)
+          sendSubscription("Test", ("gt",5), ACK)
         case x if subscriptionList.nonEmpty && x == 5 =>
           if (!waitingForACK.contains("Message.Subscribe", subscriptionList.head._1)) {
             sendUnsubscription(subscriptionList.head._2, ACK)
