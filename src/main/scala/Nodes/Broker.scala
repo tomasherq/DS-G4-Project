@@ -5,19 +5,18 @@ import Messaging._
 import Misc.ResourceUtilities
 import Routing.RoutingTable
 
-class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
+class Broker(override val ID: Int, val endpoints: List[Int],override val savePath:String) extends Node(ID,savePath) {
 
-  private val subscriptionList = scala.collection.mutable.Map[(Int, Int), Subscription]()
-  private val advertisementList = scala.collection.mutable.Map[(Int, Int), Advertisement]()
+
   private val lastHops = scala.collection.mutable.Map[(String, (Int, Int)), Int]()
 
   private val SRT = new RoutingTable()
   private val PRT = new RoutingTable()
   private val NB = ResourceUtilities.getNeighbours(ID)
   private val IsActive = scala.collection.mutable.Map[(Int, Int), Boolean]()
-  private val StoredPubs = scala.collection.mutable.Map[(Int, Int), List[Int]]()
+  private val StoredPubs = scala.collection.mutable.Map[(Int, Int), List[Message]]()
 
-  // Currently not used, its for GROUPID guarantee
+  // Currently not used, its for GROUPID guarantee --> I think is related to the pibID guarantee, not interesting
   private val Groups = List[Int]()
 
   /**
@@ -130,8 +129,6 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
 
     val advs: List[(Int, Int)] = SRT.findMatch(content.subscription)
 
-
-
     var nextHopsSet: Set[Int] = Set[Int]()
     for (ad <- advs) {
       val candidateDestination = SRT.getRoute(ad)._1
@@ -140,7 +137,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
       }
     }
     val nextHops: List[Int] = nextHopsSet.toList diff List(lastHop)
-    val coverSub: List[Int] = findCoveringSub()
+    val coverSub: List[Int] = findCoveringSub(content.subscription)
     val isEB = (NB diff List(lastHop)).isEmpty
 
     PRT.addRoute(s, lastHop, content.subscription.pClass, content.subscription.pAttributes)
@@ -165,7 +162,20 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
             sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp()), hop)
           }
         }
-      case TIME | GROUPID => ???
+      case TIME | GROUPID =>
+        // Does this actually make sense?
+        val timestampSubscription=message.timestamp
+
+        advs.map(ad=>{
+          val publications=
+            StoredPubs.get(ad._1,ad._2).asInstanceOf[List[Message]].filter(_.timestamp.compareTo(timestampSubscription)>=0)
+          publications.map(publication=>{
+            sendMessage(new Message(getMessageID(), SocketData, message.sender.ID, publication.content, getCurrentTimestamp()), message.sender.ID)
+          })
+        })
+
+
+
       case NONE =>
         for (hop <- nextHops) {
           println("Forwarding Subscription to " + hop)
@@ -193,8 +203,11 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
         nextHopsSet += candidateDestination
       }
     }
+
+
     val nextHops: List[Int] = nextHopsSet.toList diff List(lastHop)
-    val coverSub: List[Int] = findCoveringSub()
+
+    val coverSub: List[Int] = findCoveringSub(content.subscription)
     val isEB = (NB diff List(lastHop)).isEmpty
 
     PRT.deleteRoute(s)
@@ -219,7 +232,16 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
             sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp()), hop)
           }
         }
-      case TIME | GROUPID => ??? //TODO: If time allows other guarantee types will be implemented
+      case TIME | GROUPID =>
+        // Please check this
+        val timestampSubscription=message.timestamp
+        advs.map(ad=>{
+          val publications=
+            StoredPubs.get(ad._1,ad._2).asInstanceOf[List[Message]].filter(_.timestamp.compareTo(timestampSubscription)<=0)
+          publications.map(publication=>{
+            sendMessage(new Message(getMessageID(), SocketData, message.sender.ID, publication.content, getCurrentTimestamp()), message.sender.ID)
+          })
+        })
       case NONE =>
         for (hop <- nextHops) {
           println("Forwarding Unsubscription to " + hop)
@@ -284,9 +306,21 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
     true
   }
 
-  def findCoveringSub(): List[Int] = {
+  def findCoveringSub(subscription: Subscription): List[Int] = {
     // TODO find the covering sub. This is an optimization. s′∈ PRT : s' ⊆ s
-    List[Int]()
+
+    // Does it make sense this? I am trying to find subs that cover this one
+    val coverSubs: List[(Int, Int)] = PRT.findMatch(subscription)
+
+    // Once I got the matches I just iterate like this
+    var routesCover: Set[Int] = Set[Int]()
+    for (sub <- coverSubs) {
+      val candidateDestination = PRT.getRoute(sub)._1
+      if (NB.contains(candidateDestination)) {
+        routesCover += candidateDestination
+      }
+    }
+    routesCover.toList
   }
 
   def sendTimeOut(): Unit = {

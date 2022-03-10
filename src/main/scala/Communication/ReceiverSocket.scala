@@ -10,6 +10,7 @@ import scala.collection.mutable
 class ReceiverSocket(val SocketData: SocketData) extends Thread {
 
   private val messageQueue = mutable.Queue[Message]()
+  private val messageStoreUnit=mutable.Queue[Message]()
 
   def getFirstFromQueue(): Message = {
     messageQueue.dequeue()

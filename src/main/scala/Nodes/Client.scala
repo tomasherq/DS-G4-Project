@@ -4,12 +4,11 @@ import Messaging.GuaranteeType._
 import Messaging._
 import Nodes.ClientType.{ClientType, PUBLISHER, SUBSCRIBER}
 
-class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) extends Node(ID) {
+class Client(override val ID: Int, val brokerID: Int, val mode: ClientType,override val savePath:String) extends Node(ID,savePath) {
 
   private val publicationList = scala.collection.mutable.Map[(Int, Int), Publication]()
   private val publicationsReceivedList = scala.collection.mutable.Map[(Int, Int), Publication]()
-  private val subscriptionList = scala.collection.mutable.Map[(Int, Int), Subscription]()
-  private val advertisementList = scala.collection.mutable.Map[(Int, Int), Advertisement]()
+
   private val waitingForACK = scala.collection.mutable.Set[(String, (Int, Int))]()
 
   /**
@@ -138,22 +137,27 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
   override def execute(): Unit = {
     super.execute()
     super.startReceiver()
+    try {
+      while (true) {
 
-    while (true) {
-      val rand = new scala.util.Random
-      val randomNetworkDelay = 20 + rand.nextInt(( 40 - 20) + 1)
-      Thread.sleep(randomNetworkDelay)
+        val rand = new scala.util.Random
+        val randomNetworkDelay = 20 + rand.nextInt(( 40 - 20) + 1)
+        Thread.sleep(randomNetworkDelay)
 
-      while (!receiver.isQueueEmpty) {
-        println("Retrieving a new message...")
-        val message = receiver.getFirstFromQueue()
+        while (!receiver.isQueueEmpty) {
+          println("Retrieving a new message...")
+          val message = receiver.getFirstFromQueue()
 
-        message.content match {
-          case _ : AckResponse => receiveACK(message)
-          case _ : Publication => receivePublication(message)
+
+
+          message.content match {
+            case _ : AckResponse => receiveACK(message)
+            case _ : Publication => receivePublication(message)
+          }
         }
+        simulateClientBehaviour()
       }
-      simulateClientBehaviour()
+    }finally {
     }
   }
 }
