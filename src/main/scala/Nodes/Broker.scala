@@ -5,7 +5,7 @@ import Messaging._
 import Misc.ResourceUtilities
 import Routing.RoutingTable
 
-class Broker(override val ID: Int, val endpoints: List[Int],override val savePath:String) extends Node(ID,savePath) {
+class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
 
 
   private val lastHops = scala.collection.mutable.Map[(String, (Int, Int)), Int]()
@@ -339,7 +339,10 @@ class Broker(override val ID: Int, val endpoints: List[Int],override val savePat
       while (!receiver.isQueueEmpty) {
         println("Retrieving a new message...")
         val message = receiver.getFirstFromQueue()
-
+        receivedMessages+=message
+        if(receivedMessages.toList.length>MaxNumberOFMessages){
+          writeFileMessages("received")
+        }
         message.content match {
           case _ : Advertise => receiveAdvertisement(message)
           case _ : Unadvertise => receiveUnadvertisement(message)

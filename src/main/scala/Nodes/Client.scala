@@ -4,7 +4,7 @@ import Messaging.GuaranteeType._
 import Messaging._
 import Nodes.ClientType.{ClientType, PUBLISHER, SUBSCRIBER}
 
-class Client(override val ID: Int, val brokerID: Int, val mode: ClientType,override val savePath:String) extends Node(ID,savePath) {
+class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) extends Node(ID) {
 
   private val publicationList = scala.collection.mutable.Map[(Int, Int), Publication]()
   private val publicationsReceivedList = scala.collection.mutable.Map[(Int, Int), Publication]()
@@ -148,7 +148,10 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType,overr
           println("Retrieving a new message...")
           val message = receiver.getFirstFromQueue()
 
-
+          receivedMessages+=message
+          if(receivedMessages.toList.length>MaxNumberOFMessages){
+            writeFileMessages("received")
+          }
 
           message.content match {
             case _ : AckResponse => receiveACK(message)

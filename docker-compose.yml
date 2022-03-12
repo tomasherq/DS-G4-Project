@@ -11,6 +11,9 @@ services:
     # The command to execute once the image is created.
     command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 1 --BID 2 --mode publisher
 
+    volumes:
+      - ${DIRECTORY_SAVE}:/tmp
+
     networks:
       some_network:
         ipv4_address: 192.168.1.10
@@ -31,7 +34,8 @@ services:
 
     # The command to execute once the image is created.
     command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 2
-
+    volumes:
+      - ${DIRECTORY_SAVE}:/tmp
     networks:
       some_network:
         ipv4_address: 192.168.1.11
@@ -45,7 +49,8 @@ services:
 
     # The command to execute once the image is created.
     command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 3
-
+    volumes:
+      - ${DIRECTORY_SAVE}:/tmp
     networks:
       some_network:
         ipv4_address: 192.168.1.12
@@ -59,7 +64,8 @@ services:
 
     # The command to execute once the image is created.
     command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 4
-
+    volumes:
+      - ${DIRECTORY_SAVE}:/tmp
     networks:
       some_network:
         ipv4_address: 192.168.1.13
@@ -73,7 +79,8 @@ services:
 
     # The command to execute once the image is created.
     command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 5
-
+    volumes:
+      - ${DIRECTORY_SAVE}:/tmp
     networks:
       some_network:
         ipv4_address: 192.168.1.14

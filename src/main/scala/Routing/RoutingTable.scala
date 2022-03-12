@@ -4,6 +4,8 @@ import Messaging.Subscription
 
 import scala.collection.mutable.ListBuffer
 
+//         mvn install:install-file -DgroupId=com.typesafe.play -DartifactId=play-json_2.13 -Dversion=2.8.2 -Dpackaging=jar -Dfile=https://mvnrepository.com/artifact/com.typesafe.play/play-json
+
 class RoutingTable {
 
   private val table = scala.collection.mutable.Map[(Int, Int), (Int, String, (String,Int))]()

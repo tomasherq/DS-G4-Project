@@ -20,11 +20,11 @@ object Launcher extends Thread {
       --endpoints list of connected clients e.g. "1 4"
   """
 
-  def initializeNode(node_type: String, node_ID: Int, broker_ID: Int, endpoints: List[Int], node_mode: ClientType,savePath:String): Node = {
+  def initializeNode(node_type: String, node_ID: Int, broker_ID: Int, endpoints: List[Int], node_mode: ClientType): Node = {
     if (node_type == "client") {
-      new Client(node_ID, broker_ID, node_mode,savePath)
+      new Client(node_ID, broker_ID, node_mode)
     } else {
-      new Broker(node_ID, endpoints,savePath)
+      new Broker(node_ID, endpoints)
     }
   }
 
@@ -46,7 +46,6 @@ object Launcher extends Thread {
     var node_ID = 0
     var broker_ID = 0
     var endpoints: List[Int] = null
-    var savePath:String=""
 
     while (arglist.nonEmpty) {
       arglist match {
@@ -58,9 +57,6 @@ object Launcher extends Thread {
             println("Undefined Node Type")
             exit(1)
           }
-        case "--savepath" :: value ::tail=>
-          savePath=value
-          arglist=tail
         case "--ID" :: value :: tail =>
           node_ID = value.toInt
           arglist = tail
@@ -87,7 +83,6 @@ object Launcher extends Thread {
     println("Successfully initialized Launcher with the following start-up parameters:")
     println("Type: " + node_type)
     println("ID: " + node_ID)
-    println("Save path:"+ savePath)
     if (node_type == "client") println("BID: " + broker_ID + "\nMode: " + node_mode)
     if (node_type == "broker") println("Endpoints: " + endpoints)
 
@@ -103,7 +98,7 @@ object Launcher extends Thread {
       println(brokerTopology)
     }
 
-    val node = initializeNode(node_type, node_ID, broker_ID, endpoints, node_mode,savePath)
+    val node = initializeNode(node_type, node_ID, broker_ID, endpoints, node_mode)
     startNode(node)
     println(s"\nSuccessfully initialized the Node $node_type $node_ID")
   }
