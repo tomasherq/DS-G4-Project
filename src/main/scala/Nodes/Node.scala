@@ -7,12 +7,11 @@ import org.apache.commons.net.ntp.TimeStamp
 
 import scala.collection.mutable
 import scala.language.implicitConversions
-import scala.io.Source
 import scala.collection.mutable._
 import net.liftweb.json._
 import net.liftweb.json.Serialization.write
 
-import java.io.{File, FileWriter, PrintWriter}
+import java.io.{File, FileWriter}
 
 
 abstract class Node(val ID: Int) {
@@ -31,9 +30,10 @@ abstract class Node(val ID: Int) {
   protected val advertisementList = scala.collection.mutable.Map[(Int, Int), Advertisement]()
 
   // Message threshold
-  protected val messageSaveThreshold=100
+  protected val messageSaveThreshold=2
 
 
+  // Save the sent messages with the ID
   protected var sentMessages:Set[Message]=Set[Message]()
   protected var receivedMessages:Set[Message]=Set[Message]()
 
