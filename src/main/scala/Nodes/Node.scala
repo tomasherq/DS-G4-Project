@@ -23,12 +23,14 @@ abstract class Node(val ID: Int) {
   protected val randomGenerator: scala.util.Random = scala.util.Random
 
   protected val counters: mutable.Map[String, Int] = scala.collection.mutable.Map[String, Int]()
-  protected val timestamps: mutable.Map[(String, (Int, Int)), TimeStamp] = scala.collection.mutable.Map[(String, (Int, Int)), TimeStamp]()
+  protected val timestamps: mutable.Map[(String, (Int, Int)), Long] = scala.collection.mutable.Map[(String, (Int, Int)), Long]()
   protected val ACKS: mutable.Map[(String, (Int, Int), Int), Boolean] = scala.collection.mutable.Map[(String, (Int, Int), Int), Boolean]()
 
 
   protected val subscriptionList = scala.collection.mutable.Map[(Int, Int), Subscription]()
   protected val advertisementList = scala.collection.mutable.Map[(Int, Int), Advertisement]()
+
+  // Message threshold
   protected val MaxNumberOFMessages=20
 
 
@@ -53,18 +55,21 @@ abstract class Node(val ID: Int) {
 
     if(option=="received") {
       receivedMessages.map(message => {
+
         val jsonString = write(message)
         fileWriter.write(jsonString)
+        fileWriter.write("\n")
       })
       receivedMessages=Set[Message]()
     }else{
       sentMessages.map(message => {
         val jsonString = write(message)
         fileWriter.write(jsonString)
+        fileWriter.write("\n")
       })
       sentMessages=Set[Message]()
     }
-    fileWriter.write("\n")
+
     // create a JSON string from the Person, then print it
     fileWriter.close()
   }
@@ -81,8 +86,8 @@ abstract class Node(val ID: Int) {
     (ID, counters("Message"))
   }
 
-  def getCurrentTimestamp(): TimeStamp = {
-    TimeStamp.getCurrentTime
+  def getCurrentTimestamp(): Long = {
+    TimeStamp.getCurrentTime.getTime
   }
 
   /**
@@ -105,7 +110,7 @@ abstract class Node(val ID: Int) {
   }
 
   def startAckTimer(messageType: String, ID: (Int, Int)): Unit = {
-    timestamps += ((messageType, ID) -> TimeStamp.getCurrentTime)
+    timestamps += ((messageType, ID) -> getCurrentTimestamp())
   }
 
   def initializeCounters(): Unit = {

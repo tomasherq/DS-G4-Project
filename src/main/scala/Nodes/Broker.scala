@@ -16,8 +16,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
   private val IsActive = scala.collection.mutable.Map[(Int, Int), Boolean]()
   private val StoredPubs = scala.collection.mutable.Map[(Int, Int), List[Message]]()
 
-  // Currently not used, its for GROUPID guarantee --> I think is related to the pibID guarantee, not interesting
-  private val Groups = List[Int]()
+
 
   /**
    * Advertisement methods
@@ -168,7 +167,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
 
         advs.map(ad=>{
           val publications=
-            StoredPubs.get(ad._1,ad._2).asInstanceOf[List[Message]].filter(_.timestamp.compareTo(timestampSubscription)>=0)
+            StoredPubs.get(ad._1,ad._2).asInstanceOf[List[Message]].filter(_.timestamp>timestampSubscription)
           publications.map(publication=>{
             sendMessage(new Message(getMessageID(), SocketData, message.sender.ID, publication.content, getCurrentTimestamp()), message.sender.ID)
           })
@@ -237,7 +236,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
         val timestampSubscription=message.timestamp
         advs.map(ad=>{
           val publications=
-            StoredPubs.get(ad._1,ad._2).asInstanceOf[List[Message]].filter(_.timestamp.compareTo(timestampSubscription)<=0)
+            StoredPubs.get(ad._1,ad._2).asInstanceOf[List[Message]].filter(_.timestamp>timestampSubscription)
           publications.map(publication=>{
             sendMessage(new Message(getMessageID(), SocketData, message.sender.ID, publication.content, getCurrentTimestamp()), message.sender.ID)
           })
@@ -275,9 +274,9 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
     val ACK = message.content.asInstanceOf[AckResponse]
     val messageType = ACK.messageType
 
-    if ((message.timestamp.getTime - timestamps(messageType, ACK.ID).getTime) < 1500) {
+    if ((message.timestamp - timestamps(messageType, ACK.ID)) < 1500) {
 
-      println("Processing of ACK took: " + (message.timestamp.getTime - timestamps(messageType, ACK.ID).getTime) + "ms")
+      println("Processing of ACK took: " + (message.timestamp - timestamps(messageType, ACK.ID)) + "ms")
 
       ACKS += ((messageType, ACK.ID, message.sender.ID) -> true)
 

@@ -137,30 +137,29 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
   override def execute(): Unit = {
     super.execute()
     super.startReceiver()
-    try {
-      while (true) {
 
-        val rand = new scala.util.Random
-        val randomNetworkDelay = 20 + rand.nextInt(( 40 - 20) + 1)
-        Thread.sleep(randomNetworkDelay)
+    while (true) {
 
-        while (!receiver.isQueueEmpty) {
-          println("Retrieving a new message...")
-          val message = receiver.getFirstFromQueue()
+      val rand = new scala.util.Random
+      val randomNetworkDelay = 20 + rand.nextInt(( 40 - 20) + 1)
+      Thread.sleep(randomNetworkDelay)
 
-          receivedMessages+=message
-          if(receivedMessages.toList.length>MaxNumberOFMessages){
-            writeFileMessages("received")
-          }
+      while (!receiver.isQueueEmpty) {
+        println("Retrieving a new message...")
+        val message = receiver.getFirstFromQueue()
 
-          message.content match {
-            case _ : AckResponse => receiveACK(message)
-            case _ : Publication => receivePublication(message)
-          }
+        receivedMessages+=message
+        if(receivedMessages.toList.length>MaxNumberOFMessages){
+          writeFileMessages("received")
         }
-        simulateClientBehaviour()
+
+        message.content match {
+          case _ : AckResponse => receiveACK(message)
+          case _ : Publication => receivePublication(message)
+        }
       }
-    }finally {
+      simulateClientBehaviour()
     }
+
   }
 }
