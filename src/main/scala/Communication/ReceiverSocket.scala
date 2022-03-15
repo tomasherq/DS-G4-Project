@@ -6,13 +6,10 @@ import java.io.ObjectInputStream
 import java.net.InetSocketAddress
 import java.nio.channels.ServerSocketChannel
 import scala.collection.mutable
-import scala.collection.mutable.Set
 
 class ReceiverSocket(val SocketData: SocketData) extends Thread {
 
   private val messageQueue = mutable.Queue[Message]()
-  private val messageStoreUnit=mutable.Queue[Message]()
-
 
   def getFirstFromQueue(): Message = {
     messageQueue.dequeue()
@@ -34,7 +31,6 @@ class ReceiverSocket(val SocketData: SocketData) extends Thread {
       val messageReceived = ois.readObject.asInstanceOf[Message]
 
       messageQueue.enqueue(messageReceived)
-
     }
   }
 }
