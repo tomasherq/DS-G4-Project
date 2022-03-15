@@ -161,7 +161,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
             sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp()), hop)
           }
         }
-      case TIME | GROUPID =>
+      case TIME  =>
         // Does this actually make sense?
         val timestampSubscription=message.timestamp
 
@@ -231,7 +231,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
             sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp()), hop)
           }
         }
-      case TIME | GROUPID =>
+      case TIME  =>
         // Please check this
         val timestampSubscription=message.timestamp
         advs.map(ad=>{
@@ -274,7 +274,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
     val ACK = message.content.asInstanceOf[AckResponse]
     val messageType = ACK.messageType
 
-    if ((message.timestamp - timestamps(messageType, ACK.ID)) < 1500) {
+    if ((message.timestamp - timestamps(messageType, ACK.ID)) < 1500 && !ACK.timeout) {
 
       println("Processing of ACK took: " + (message.timestamp - timestamps(messageType, ACK.ID)) + "ms")
 
@@ -292,7 +292,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
         sendMessage(new Message(getMessageID(), SocketData, destinationID, ACK, getCurrentTimestamp()), destinationID)
       }
     } else {
-      sendTimeOut()
+      sendTimeOut(ACK)
     }
   }
 
@@ -322,8 +322,25 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
     routesCover.toList
   }
 
-  def sendTimeOut(): Unit = {
+  def sendTimeOut(ACK:AckResponse): Unit = {
     // TODO To be implemented, not strictly necessary
+
+
+    val destinationID = lastHops(ACK.messageType, ACK.ID)
+
+    ACK.messageType match {
+      case "Message.Subscription"=>
+        PRT.deleteRoute(ACK.ID)
+        subscriptionList -= ACK.ID
+      case "Message.Advertisement"=>
+        SRT.deleteRoute(ACK.ID)
+        advertisementList -= ACK.ID
+    }
+
+    ACK.timeout=true
+
+
+    sendMessage(new Message(getMessageID(), SocketData, destinationID, ACK, getCurrentTimestamp()), destinationID)
   }
 
   override def execute(): Unit = {
@@ -339,7 +356,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
         println("Retrieving a new message...")
         val message = receiver.getFirstFromQueue()
         receivedMessages+=message
-        if(receivedMessages.toList.length>MaxNumberOFMessages){
+        if(receivedMessages.toList.length>messageSaveThreshold){
           writeFileMessages("received")
         }
         message.content match {
