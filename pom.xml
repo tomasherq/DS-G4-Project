@@ -35,6 +35,13 @@
             <version>3.2.11</version>
             <scope>compile</scope>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/net.liftweb/lift-json -->
+        <dependency>
+            <groupId>net.liftweb</groupId>
+            <artifactId>lift-json_2.13</artifactId>
+            <version>3.5.0</version>
+        </dependency>
+
     </dependencies>
 
     <build>

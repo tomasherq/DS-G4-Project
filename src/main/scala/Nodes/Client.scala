@@ -8,14 +8,13 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
 
   private val publicationList = scala.collection.mutable.Map[(Int, Int), Publication]()
   private val publicationsReceivedList = scala.collection.mutable.Map[(Int, Int), Publication]()
-  private val subscriptionList = scala.collection.mutable.Map[(Int, Int), Subscription]()
-  private val advertisementList = scala.collection.mutable.Map[(Int, Int), Advertisement]()
+
   private val waitingForACK = scala.collection.mutable.Set[(String, (Int, Int))]()
 
   /**
    * Advertisement methods
    */
-  def sendAdvertisement(pClass: String, pAttributes: List[Int => Boolean], guarantee: GuaranteeType): Unit = {
+  def sendAdvertisement(pClass: String, pAttributes: (String, Int), guarantee: GuaranteeType): Unit = {
     println("Sending Advertisement to " + brokerID)
 
     val adID: (Int, Int) = (ID, counters("Advertisements"))
@@ -46,7 +45,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
   /**
    * Subscription methods
    */
-  def sendSubscription(pClass: String, pAttributes: List[Int => Boolean], guarantee: GuaranteeType): Unit = {
+  def sendSubscription(pClass: String, pAttributes: (String, Int), guarantee: GuaranteeType): Unit = {
     println("Sending Subscription to " + brokerID)
 
     val subID: (Int, Int) = (ID, counters("Subscriptions"))
@@ -110,7 +109,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
     if (mode == PUBLISHER) {
       option match {
         case x if x == 1 =>
-          sendAdvertisement("Test", List((x: Int) => x < 10), ACK)
+          sendAdvertisement("Test", ("gt",10), ACK)
         case x if advertisementList.nonEmpty && x == 5 =>
           if (!waitingForACK.contains("Message.Advertise", advertisementList.head._1)) {
             sendUnadvertisement(advertisementList.head._2, ACK)
@@ -121,7 +120,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
     if (mode == SUBSCRIBER) {
       option match {
         case x if x == 10  =>
-          sendSubscription("Test", List((x: Int) => x < 10), ACK)
+          sendSubscription("Test", ("gt",5), ACK)
         case x if subscriptionList.nonEmpty && x == 5 =>
           if (!waitingForACK.contains("Message.Subscribe", subscriptionList.head._1)) {
             sendUnsubscription(subscriptionList.head._2, ACK)
@@ -140,6 +139,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
     super.startReceiver()
 
     while (true) {
+
       val rand = new scala.util.Random
       val randomNetworkDelay = 20 + rand.nextInt(( 40 - 20) + 1)
       Thread.sleep(randomNetworkDelay)
@@ -148,6 +148,11 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
         println("Retrieving a new message...")
         val message = receiver.getFirstFromQueue()
 
+        receivedMessages+=message
+        if(receivedMessages.toList.length>MaxNumberOFMessages){
+          writeFileMessages("received")
+        }
+
         message.content match {
           case _ : AckResponse => receiveACK(message)
           case _ : Publication => receivePublication(message)
@@ -155,5 +160,6 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
       }
       simulateClientBehaviour()
     }
+
   }
 }
