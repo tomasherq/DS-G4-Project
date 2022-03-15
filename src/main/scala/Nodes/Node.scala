@@ -31,7 +31,7 @@ abstract class Node(val ID: Int) {
   protected val advertisementList = scala.collection.mutable.Map[(Int, Int), Advertisement]()
 
   // Message threshold
-  protected val MaxNumberOFMessages=20
+  protected val messageSaveThreshold=100
 
 
   protected var sentMessages:Set[Message]=Set[Message]()
@@ -97,7 +97,7 @@ abstract class Node(val ID: Int) {
     val DestinationSocketData = ResourceUtilities.getNodeSocketData(DestinationID)
     counters += ("Message" -> (counters("Message")+1))
     sentMessages+=message
-    if(sentMessages.toList.length>MaxNumberOFMessages){
+    if(sentMessages.toList.length>messageSaveThreshold){
       writeFileMessages("sent")
     }
 

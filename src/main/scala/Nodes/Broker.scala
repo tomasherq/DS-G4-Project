@@ -339,7 +339,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
         println("Retrieving a new message...")
         val message = receiver.getFirstFromQueue()
         receivedMessages+=message
-        if(receivedMessages.toList.length>MaxNumberOFMessages){
+        if(receivedMessages.toList.length>messageSaveThreshold){
           writeFileMessages("received")
         }
         message.content match {

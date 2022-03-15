@@ -149,7 +149,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
         val message = receiver.getFirstFromQueue()
 
         receivedMessages+=message
-        if(receivedMessages.toList.length>MaxNumberOFMessages){
+        if(receivedMessages.toList.length>messageSaveThreshold){
           writeFileMessages("received")
         }
 
