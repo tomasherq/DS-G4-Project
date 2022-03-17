@@ -30,7 +30,7 @@ abstract class Node(val ID: Int) {
   protected val advertisementList = scala.collection.mutable.Map[(Int, Int), Advertisement]()
 
   // Message threshold
-  protected val messageSaveThreshold=2
+  protected val messageSaveThreshold=49
 
 
   // Save the sent messages with the ID
