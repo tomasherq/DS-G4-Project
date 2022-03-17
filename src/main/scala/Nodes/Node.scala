@@ -46,7 +46,7 @@ abstract class Node(val ID: Int) {
 
     implicit val formats: DefaultFormats.type = DefaultFormats
 
-    if(option == "received") {
+    if (option == "received") {
       receivedMessages.foreach(message => {
         val jsonString = write(message)
         fileWriter.write(jsonString)
@@ -106,6 +106,7 @@ abstract class Node(val ID: Int) {
     counters += ("Message" -> 1)
     counters += ("Advertisements" -> 1)
     counters += ("Subscriptions" -> 1)
+    counters += ("Publications" -> 1)
   }
 
   def execute(): Unit = {

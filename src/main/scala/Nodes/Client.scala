@@ -78,9 +78,20 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
   /**
    * Publication methods
    */
-  def sendPublication(): Unit = {
-    println("Sending Publication")
-    // TODO To be implemented
+  def sendPublication(pClass: String, pAttributes: (String, Int), pContent: Int, guarantee: GuaranteeType): Unit = {
+    println("Sending Publication to " + brokerID)
+
+    val pubID: (Int, Int) = (ID, counters("Publications"))
+    val publication = Publication(pubID, pClass, pAttributes, pContent)
+    val content = Publish(publication, guarantee)
+
+    sendMessage(new Message(getMessageID(), SocketData, brokerID, content, getCurrentTimestamp), brokerID)
+
+    publicationList += (pubID -> publication)
+    if (guarantee == ACK) waitingForACK += ((content.getClass.toString, pubID) -> 1)
+    counters += ("Publications" -> (counters("Publications") + 1))
+
+    println(publicationList)
   }
 
   def receivePublication(message: Message): Unit = {
@@ -113,7 +124,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
         //TODO: Add unsub/unad. This requires a rewriting of the way we store these.
         case "Message.Publication" =>
           val publication = publicationList(ACK.ID)
-          sendPublication()
+          //sendPublication()
       }
       println("Resending message " + ACK.ID + " " + messageType)
     } else {
