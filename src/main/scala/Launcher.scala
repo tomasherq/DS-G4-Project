@@ -29,7 +29,7 @@ object Launcher extends Thread {
   }
 
   def startNode(node: Node): Unit = {
-    println("\nNode is listening on " + node.getNodeIP() + ":" + node.getNodePort())
+    println("\nNode is listening on " + node.getNodeIP + ":" + node.getNodePort)
     node.execute()
   }
 
@@ -86,12 +86,10 @@ object Launcher extends Thread {
     if (node_type == "client") println("BID: " + broker_ID + "\nMode: " + node_mode)
     if (node_type == "broker") println("Endpoints: " + endpoints)
 
-    // Parse and print node list
     val nodeList = ResourceUtilities.getNodeList()
     println("\nSuccessfully parsed Node List:")
     println(nodeList)
 
-    // Parse Broker Network if instance is of type Broker
     if (node_type == "broker") {
       val brokerTopology = ResourceUtilities.getBrokerTopology()
       println("\nSuccessfully parsed Broker Topology:")

@@ -6,15 +6,11 @@ import java.io.ObjectOutputStream
 import java.net.InetSocketAddress
 import java.nio.channels.SocketChannel
 import scala.collection.mutable
-import java.io.File
-import scala.collection.mutable.Set
 
 @SerialVersionUID(1L)
 class SenderSocket() extends Serializable {
 
   private val messageStoreUnit=mutable.Queue[Message]()
-
-
 
   def sendMessage(messageToSend: Message, addressReceiver: String, portReceiver: Int): Unit = {
 
@@ -28,6 +24,5 @@ class SenderSocket() extends Serializable {
       oos.writeObject(messageToSend)
       oos.close()
     }
-
   }
 }
