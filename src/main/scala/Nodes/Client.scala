@@ -143,27 +143,31 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
    * Simulate random  behaviour
    */
   private def simulateClientBehaviour(): Unit = {
-    val option = randomGenerator.nextInt(500)
+    val option = randomGenerator.nextInt(300)
 
     if (mode == PUBLISHER) {
       option match {
-        case x if x == 1 =>
+        case x if advertisementList.isEmpty  && x == 10 =>
           sendAdvertisement("Test", ("gt",10), ACK)
+//        case x if advertisementList.nonEmpty && x == 5 =>
+//          if (!waitingForACK.contains(("Message.Advertise", advertisementList.head._1))) {
+//            sendUnadvertisement(advertisementList.head._2, ACK)
+//          }
         case x if advertisementList.nonEmpty && x == 5 =>
-          if (!waitingForACK.contains(("Message.Advertise", advertisementList.head._1))) {
-            sendUnadvertisement(advertisementList.head._2, ACK)
-          }
+            if (!waitingForACK.contains(("Message.Advertise", advertisementList.head._1))) {
+              sendPublication("Test", ("gt",10), 14, ACK)
+            }
         case _ =>
       }
     }
     if (mode == SUBSCRIBER) {
       option match {
-        case x if x == 10  =>
-          sendSubscription("Test", ("gt", 5), ACK)
-        case x if subscriptionList.nonEmpty && x == 5 =>
-          if (!waitingForACK.contains(("Message.Subscribe", subscriptionList.head._1))) {
-            sendUnsubscription(subscriptionList.head._2, ACK)
-          }
+        case x if x == 15  =>
+          sendSubscription("Test", ("gt", 10), ACK)
+//        case x if subscriptionList.nonEmpty && x == 5 =>
+//          if (!waitingForACK.contains(("Message.Subscribe", subscriptionList.head._1))) {
+//            sendUnsubscription(subscriptionList.head._2, ACK)
+//          }
         case _ =>
       }
     }

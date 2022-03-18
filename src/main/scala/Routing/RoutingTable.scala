@@ -40,10 +40,8 @@ class RoutingTable {
         if (routeInfo._3._1.equals(subscription.pAttributes._1) || subscription.pAttributes._1.equals("ne")) {
 
           validSubscription = routeInfo._3._1 match {
-            case "gt" => valueRoute > valueSub
-            case "gte" => valueRoute >= valueSub
-            case "lt" => valueRoute < valueSub
-            case "lte" => valueRoute <= valueSub
+            case "gt" => valueRoute >= valueSub
+            case "lt" => valueRoute <= valueSub
             case "e" => valueRoute == valueSub
           }
 
@@ -75,10 +73,8 @@ class RoutingTable {
         if (routeInfo._3._1.equals(publication.pAttributes._1) || publication.pAttributes._1.equals("ne")) {
 
           validPublication = routeInfo._3._1 match {
-            case "gt" => valueRoute > valueSub
-            case "gte" => valueRoute >= valueSub
-            case "lt" => valueRoute < valueSub
-            case "lte" => valueRoute <= valueSub
+            case "gt" => valueRoute >= valueSub
+            case "lt" => valueRoute <= valueSub
             case "e" => valueRoute == valueSub
           }
 
