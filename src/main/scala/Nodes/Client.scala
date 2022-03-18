@@ -95,8 +95,15 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
   }
 
   def receivePublication(message: Message): Unit = {
-    println("Receiving Publication")
-    // TODO To be implemented
+    val content: Publish = message.content.asInstanceOf[Publish]
+    val pubID: (Int, Int) = content.publication.ID
+
+    println("Receiving Publication from " + message.sender.ID + " with message: "
+      + content.publication.pContent + " "
+      + content.publication.pClass + " "
+      + content.publication.pAttributes)
+
+    publicationsReceivedList += (pubID -> content.publication)
   }
 
   /**
