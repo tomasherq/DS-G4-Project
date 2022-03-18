@@ -15,7 +15,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <encoding>UTF-8</encoding>
-        <scala.version>2.13.6</scala.version>
+        <scala.version>2.13.2</scala.version>
     </properties>
 
     <dependencies>
@@ -24,18 +24,20 @@
             <artifactId>scala-library</artifactId>
             <version>${scala.version}</version>
         </dependency>
+
         <dependency>
             <groupId>commons-net</groupId>
             <artifactId>commons-net</artifactId>
             <version>3.0.1</version>
         </dependency>
+
         <dependency>
             <groupId>org.scalatest</groupId>
             <artifactId>scalatest_2.13</artifactId>
             <version>3.2.11</version>
             <scope>compile</scope>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/net.liftweb/lift-json -->
+
         <dependency>
             <groupId>net.liftweb</groupId>
             <artifactId>lift-json_2.13</artifactId>

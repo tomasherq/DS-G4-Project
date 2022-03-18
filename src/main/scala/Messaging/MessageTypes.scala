@@ -15,7 +15,7 @@ case class Advertise(advertisement: Advertisement, guarantee: GuaranteeType) ext
 case class Unadvertise(advertisement: Advertisement, guarantee: GuaranteeType) extends Serializable with MessageType
 
 @SerialVersionUID(1L)
-case class AckResponse(messageType: String, ID: (Int, Int),var timeout:Boolean=false) extends Serializable with MessageType
+case class AckResponse(messageType: String, ID: (Int, Int), var timeout: Boolean = false) extends Serializable with MessageType
 
 @SerialVersionUID(1L)
-case class Publish(publication: Publication, guaranteeType: GuaranteeType) extends Serializable with MessageType
+case class Publish(publication: Publication, guarantee: GuaranteeType) extends Serializable with MessageType
