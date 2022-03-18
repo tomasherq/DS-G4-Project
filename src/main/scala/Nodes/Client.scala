@@ -191,10 +191,9 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
         println("Retrieving a new message...")
         val message = receiver.getFirstFromQueue()
 
-        receivedMessages += message
-        if (receivedMessages.toList.length > messageSaveThreshold) {
-          writeFileMessages("received")
-        }
+
+        writeFileMessages("received",message)
+
 
         message.content match {
           case _ : AckResponse => receiveACK(message)

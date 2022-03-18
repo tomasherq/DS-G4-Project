@@ -27,11 +27,11 @@ abstract class Node(val ID: Int) {
   protected val advertisementList: mutable.Map[(Int, Int), Advertisement] = mutable.Map[(Int, Int), Advertisement]()
 
   // Message threshold
-  protected val messageSaveThreshold=49
-  protected var sentMessages: Set[Message] = Set[Message]()
-  protected var receivedMessages: Set[Message] = Set[Message]()
+  protected val messageSaveThreshold=100
 
-  def writeFileMessages(option: String): Unit = {
+
+
+  def writeFileMessages(option:String,message: Message): Unit = {
 
     val location = "/tmp/" + ID.toString + "/" + option + "/"
     val directory = new File(String.valueOf(location))
@@ -40,28 +40,24 @@ abstract class Node(val ID: Int) {
       directory.mkdirs()
     }
 
-    val numberOfFile = directory.listFiles.length.toString
-    val filename = location + option + "_" + numberOfFile + ".ndjson"
-    val fileWriter = new FileWriter(filename)
-
     implicit val formats: DefaultFormats.type = DefaultFormats
-
+    var filename=""
     if (option == "received") {
-      receivedMessages.foreach(message => {
-        val jsonString = write(message)
-        fileWriter.write(jsonString)
-        fileWriter.write("\n")
-      })
-      receivedMessages = Set[Message]()
+
+      counters += ("SavedMessagesReceived" -> (counters("SavedMessagesReceived") + 1))
+      filename = location + option + "_" + (counters("SavedMessagesReceived") / messageSaveThreshold).toString + ".ndjson"
+
     } else {
-      sentMessages.foreach(message => {
-        val jsonString = write(message)
-        fileWriter.write(jsonString)
-        fileWriter.write("\n")
-      })
-      sentMessages = Set[Message]()
+
+      counters += ("SavedMessagesSent" -> (counters("SavedMessagesSent") + 1))
+      filename = location + option + "_" + (counters("SavedMessagesSent")/messageSaveThreshold).toString + ".ndjson"
+
     }
+    val jsonString = write(message)
+    val fileWriter = new FileWriter(filename, true)
+    fileWriter.write(jsonString+"\n")
     fileWriter.close()
+
   }
 
   def getNodeIP: String = {
@@ -86,10 +82,10 @@ abstract class Node(val ID: Int) {
    */
   def sendMessage(message: Message, DestinationID: Int): Unit = {
     val DestinationSocketData = ResourceUtilities.getNodeSocketData(DestinationID)
-    sentMessages += message
-    if (sentMessages.toList.length > messageSaveThreshold) {
-      writeFileMessages("sent")
-    }
+
+
+    writeFileMessages("sent",message)
+
     sender.sendMessage(message, DestinationSocketData.address, DestinationSocketData.port)
   }
 
@@ -107,10 +103,15 @@ abstract class Node(val ID: Int) {
     counters += ("Advertisements" -> 1)
     counters += ("Subscriptions" -> 1)
     counters += ("Publications" -> 1)
+    counters += ("SavedMessagesSent" -> 0)
+    counters += ("SavedMessagesReceived" -> 0)
   }
 
   def execute(): Unit = {
     randomGenerator.setSeed(100)
     initializeCounters()
+
+
+
   }
 }
