@@ -269,17 +269,19 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
 
     val subs: List[(Int, Int)] = PRT.findMatch(content.publication)
 
+    println(subs)
+
     var nextHopsSet: Set[Int] = Set[Int]()
 
     for (s <- subs) {
       content.guarantee match {
         case ACK | NONE =>
-          if (IsActive(s)) {
+          //if (IsActive(s)) {
             val candidateDestination = PRT.getRoute(s)._1
             if (NB.contains(candidateDestination)) {
               nextHopsSet += candidateDestination
             }
-          }
+         // }
         case TIME => //TODO
       }
     }
@@ -404,6 +406,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
           case _ : Advertise => receiveAdvertisement(message)
           case _ : Unadvertise => receiveUnadvertisement(message)
           case _ : Subscribe => receiveSubscription(message)
+          case _ : Publish => receivePublication(message)
           case _ : Unsubscribe => receiveUnsubscription(message)
           case _ : AckResponse => receiveACK(message)
         }
