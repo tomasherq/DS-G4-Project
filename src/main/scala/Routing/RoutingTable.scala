@@ -78,7 +78,7 @@ class RoutingTable {
             case "e" => valueRoute == valueSub
           }
 
-          if (publication.pAttributes._1.equals("ne") && routeInfo._3._1.contains("e")) {
+          if (publication.pAttributes._1.equals("ne")) {
             validPublication = validPublication && valueRoute != valueSub
           }
         }
