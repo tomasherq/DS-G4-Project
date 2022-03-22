@@ -7,86 +7,57 @@ services:
   client1:
     # Path of Dockerfile
     build: .
-
     # The command to execute once the image is created.
     command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 1 --BID 2 --mode publisher
-
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
-
     networks:
-      some_network:
-        ipv4_address: 192.168.1.10
-
-    # Port
-    # Its syntax is as follows: [port we want on our machine]:[port we want to retrieve in the container]
-    ports:
-      - 1000:1000
-
-    # Here, we want the 'client' service to wait until the 'server' service is ready.
-    #depends_on:
-    #  - broker1
-    #  - broker2
+      broker_network:
+        ipv4_address: 192.168.2.1
 
   broker2:
     # Path of Dockerfile
     build: .
-
     # The command to execute once the image is created.
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 2
+    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 2 --NB 3
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
-      some_network:
-        ipv4_address: 192.168.1.11
-
-    ports:
-      - 1001:1001
+      broker_network:
+        ipv4_address: 192.168.2.2
 
   broker3:
     # Path of Dockerfile
     build: .
-
     # The command to execute once the image is created.
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 3
+    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 3 --NB 2,4,5
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
-      some_network:
-        ipv4_address: 192.168.1.12
-
-    ports:
-      - 1002:1002
+      broker_network:
+        ipv4_address: 192.168.2.3
 
   broker4:
     # Path of Dockerfile
     build: .
-
     # The command to execute once the image is created.
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 4
+    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 4 --NB 3
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
-      some_network:
-        ipv4_address: 192.168.1.13
-
-    ports:
-      - 1003:1003
+      broker_network:
+        ipv4_address: 192.168.2.4
 
   broker5:
     # Path of Dockerfile
     build: .
-
     # The command to execute once the image is created.
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 5
+    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 5 --NB 3
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
-      some_network:
-        ipv4_address: 192.168.1.14
-
-    ports:
-      - 1004:1004
+      broker_network:
+        ipv4_address: 192.168.2.5
 
   client6:
     # Path of Dockerfile
@@ -96,20 +67,15 @@ services:
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
-      some_network:
-        ipv4_address: 192.168.1.15
+      broker_network:
+        ipv4_address: 192.168.2.6
     # Port
     # Its syntax is as follows: [port we want on our machine]:[port we want to retrieve in the container]
-    ports:
-      - 1005:1005
-    # Here, we want the 'client' service to wait until the 'server' service is ready.
-    #depends_on:
-    #  - broker1
-    #  - broker2
+
 
 # Set up custom network
 networks:
-  some_network:
+  broker_network:
     driver: bridge
     ipam:
       driver: default

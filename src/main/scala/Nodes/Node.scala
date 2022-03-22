@@ -26,10 +26,39 @@ abstract class Node(val ID: Int) {
   protected val subscriptionList: mutable.Map[(Int, Int), Subscription] = mutable.Map[(Int, Int), Subscription]()
   protected val advertisementList: mutable.Map[(Int, Int), Advertisement] = mutable.Map[(Int, Int), Advertisement]()
 
-  protected val messageSaveThreshold = 2
+  protected val messageSaveThreshold = 1
 
   protected var sentMessages: Set[Message] = Set[Message]()
   protected var receivedMessages: Set[Message] = Set[Message]()
+
+  def getNodeIP: String = {
+    SocketData.address
+  }
+
+  def getNodePort: Int = {
+    SocketData.port
+  }
+
+  def getMessageID(): (Int, Int) = {
+    counters += ("Message" -> (counters("Message") + 1))
+    (ID, counters("Message"))
+  }
+
+  def getCurrentTimestamp: Long = {
+    TimeStamp.getCurrentTime.getTime
+  }
+
+  /**
+   * sendMessage wrapper for client -> broker
+   */
+  def sendMessage(message: Message, DestinationID: Int): Unit = {
+    val DestinationSocketData = ResourceUtilities.getNodeSocketData(DestinationID)
+    sentMessages += message
+    if (sentMessages.toList.length > messageSaveThreshold) {
+      writeFileMessages("sent")
+    }
+    sender.sendMessage(message, DestinationSocketData.address, DestinationSocketData.port)
+  }
 
   def writeFileMessages(option: String): Unit = {
 
@@ -62,35 +91,6 @@ abstract class Node(val ID: Int) {
       sentMessages = Set[Message]()
     }
     fileWriter.close()
-  }
-
-  def getNodeIP: String = {
-    SocketData.address
-  }
-
-  def getNodePort: Int = {
-    SocketData.port
-  }
-
-  def getMessageID(): (Int, Int) = {
-    counters += ("Message" -> (counters("Message") + 1))
-    (ID, counters("Message"))
-  }
-
-  def getCurrentTimestamp: Long = {
-    TimeStamp.getCurrentTime.getTime
-  }
-
-  /**
-   * sendMessage wrapper for client -> broker
-   */
-  def sendMessage(message: Message, DestinationID: Int): Unit = {
-    val DestinationSocketData = ResourceUtilities.getNodeSocketData(DestinationID)
-    sentMessages += message
-    if (sentMessages.toList.length > messageSaveThreshold) {
-      writeFileMessages("sent")
-    }
-    sender.sendMessage(message, DestinationSocketData.address, DestinationSocketData.port)
   }
 
   def startReceiver(): Unit = {

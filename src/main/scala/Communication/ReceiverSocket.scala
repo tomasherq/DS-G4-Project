@@ -23,7 +23,7 @@ class ReceiverSocket(val SocketData: SocketData) extends Thread {
     val socketChannelReceiver = ServerSocketChannel.open
     socketChannelReceiver.configureBlocking(true)
 
-    socketChannelReceiver.socket.bind(new InetSocketAddress(SocketData.address,SocketData.port))
+    socketChannelReceiver.socket.bind(new InetSocketAddress(SocketData.address, SocketData.port))
 
     while (true) {
       val connectionToSocket = socketChannelReceiver.accept

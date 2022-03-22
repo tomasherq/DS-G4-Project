@@ -13,6 +13,10 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
   private val publicationsReceivedList = mutable.Map[(Int, Int), Publication]()
   private val waitingForACK = mutable.Map[(String, (Int, Int)),Int]()
 
+  protected var numberOfSimulations = 0
+  protected var simulationLimit = 5
+
+
   /**
    * Advertisement methods
    */
@@ -26,7 +30,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
     sendMessage(new Message(getMessageID(), SocketData, brokerID, content, getCurrentTimestamp), brokerID)
 
     advertisementList += (adID -> advertisement)
-    if (guarantee == ACK) waitingForACK += ((content.getClass.toString, adID) -> 1)
+    if (guarantee == ACK) waitingForACK += ((content.getClass.getName, adID) -> 1)
     counters += ("Advertisements" -> (counters("Advertisements") + 1))
 
     println(advertisementList)
@@ -39,7 +43,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
     sendMessage(new Message(getMessageID(), SocketData, brokerID, content, getCurrentTimestamp), brokerID)
 
     advertisementList -= advertisement.ID
-    if (guarantee == ACK) waitingForACK += ((content.getClass.toString, content.advertisement.ID) -> 1)
+    if (guarantee == ACK) waitingForACK += ((content.getClass.getName, content.advertisement.ID) -> 1)
 
     println(advertisementList)
   }
@@ -57,7 +61,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
     sendMessage(new Message(getMessageID(), SocketData, brokerID, content, getCurrentTimestamp), brokerID)
 
     subscriptionList += (subID -> subscription)
-    if (guarantee == ACK) waitingForACK += ((content.getClass.toString, subID) -> 1)
+    if (guarantee == ACK) waitingForACK += ((content.getClass.getName, subID) -> 1)
     counters += ("Subscriptions" -> (counters("Subscriptions") + 1))
 
     println(subscriptionList)
@@ -70,7 +74,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
     sendMessage(new Message(getMessageID(), SocketData, brokerID, content, getCurrentTimestamp), brokerID)
 
     subscriptionList -= subscription.ID
-    if (guarantee == ACK) waitingForACK += ((content.getClass.toString, content.subscription.ID) -> 1)
+    if (guarantee == ACK) waitingForACK += ((content.getClass.getName, content.subscription.ID) -> 1)
 
     println(subscriptionList)
   }
@@ -88,7 +92,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
     sendMessage(new Message(getMessageID(), SocketData, brokerID, content, getCurrentTimestamp), brokerID)
 
     publicationList += (pubID -> publication)
-    if (guarantee == ACK) waitingForACK += ((content.getClass.toString, pubID) -> 1)
+    if (guarantee == ACK) waitingForACK += ((content.getClass.getName, pubID) -> 1)
     counters += ("Publications" -> (counters("Publications") + 1))
 
     println(publicationList)
@@ -118,20 +122,23 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
 
     waitingForACK -= ((messageType, ACK.ID))
 
-    if(ACK.timeout && ackCounter < 4){
+    if (ACK.timeout && ackCounter < 4) {
+
       waitingForACK += (messageType, ACK.ID) -> (ackCounter + 1)
 
       ACK.messageType match {
-        case "Message.Subscription" =>
+        case "Messaging.Subscribe" =>
           val subscription = subscriptionList(ACK.ID)
           sendSubscription(subscription.pClass, subscription.pAttributes,GuaranteeType.ACK)
-        case "Message.Advertisement" =>
+        case "Messaging.Advertise" =>
           val advertisement = advertisementList(ACK.ID)
           sendAdvertisement(advertisement.pClass, advertisement.pAttributes, GuaranteeType.ACK)
         //TODO: Add unsub/unad. This requires a rewriting of the way we store these.
-        case "Message.Publication" =>
+        case "Messaging.Publish" =>
           val publication = publicationList(ACK.ID)
           //sendPublication()
+        case "Messaging.Unsubscribe" =>
+        case "Messaging.Unadvertise" =>
       }
       println("Resending message " + ACK.ID + " " + messageType)
     } else {
@@ -145,32 +152,45 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
   private def simulateClientBehaviour(): Unit = {
     val option = randomGenerator.nextInt(300)
 
+    var simulationExecution = false
+
+
+    //TODO Make nice simulation with all types of messages. Also change topology. 12 broker nodes.
+    // 1 with pub sub, 1 with pub, 1 with sub, 1 with sub sub, 1 with pub pub.
+    // 5 EB, 7 B
     if (mode == PUBLISHER) {
       option match {
-        case x if advertisementList.isEmpty  && x == 10 =>
-          sendAdvertisement("Test", ("gt",10), ACK)
+        case x if advertisementList.isEmpty  && x == 15 =>
+          sendAdvertisement("Test", ("gt",10), NONE)
+          simulationExecution = true
 //        case x if advertisementList.nonEmpty && x == 5 =>
-//          if (!waitingForACK.contains(("Message.Advertise", advertisementList.head._1))) {
+//          if (!waitingForACK.contains(("Messaging.Advertise", advertisementList.head._1))) {
 //            sendUnadvertisement(advertisementList.head._2, ACK)
 //          }
         case x if advertisementList.nonEmpty && x == 5 =>
-            if (!waitingForACK.contains(("Message.Advertise", advertisementList.head._1))) {
-              sendPublication("Test", ("gt",10), 14, ACK)
-            }
+          if (!waitingForACK.contains(("Messaging.Advertise", advertisementList.head._1))) {
+              sendPublication("Test", ("gt", 10), 22, NONE)
+          }
+          simulationExecution = true
         case _ =>
       }
     }
     if (mode == SUBSCRIBER) {
       option match {
-        case x if x == 15  =>
-          sendSubscription("Test", ("gt", 10), ACK)
+        case x if x == 10  =>
+          sendSubscription("Test", ("gt", 8), NONE)
+          simulationExecution = true
 //        case x if subscriptionList.nonEmpty && x == 5 =>
-//          if (!waitingForACK.contains(("Message.Subscribe", subscriptionList.head._1))) {
+//          if (!waitingForACK.contains(("Messaging.Subscribe", subscriptionList.head._1))) {
 //            sendUnsubscription(subscriptionList.head._2, ACK)
 //          }
         case _ =>
       }
     }
+
+    if (simulationExecution) numberOfSimulations += 1
+
+    if (numberOfSimulations == simulationLimit) println("Simulation Limit Reached. Now only listening to new messages.")
   }
 
   /**
@@ -198,10 +218,11 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
 
         message.content match {
           case _ : AckResponse => receiveACK(message)
-          case _ : Publication => receivePublication(message)
+          case _ : Publish => receivePublication(message)
         }
       }
-      simulateClientBehaviour()
+
+      if (numberOfSimulations < simulationLimit) simulateClientBehaviour()
     }
   }
 }
