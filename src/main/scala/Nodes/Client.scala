@@ -14,8 +14,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
   private val waitingForACK = mutable.Map[(String, (Int, Int)),Int]()
 
   protected var numberOfSimulations = 0
-  protected var simulationLimit = 5
-
+  protected var simulationLimit = 3
 
   /**
    * Advertisement methods
@@ -161,7 +160,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
     if (mode == PUBLISHER) {
       option match {
         case x if advertisementList.isEmpty  && x == 15 =>
-          sendAdvertisement("Test", ("gt",10), NONE)
+          sendAdvertisement("Test", ("gt",10), ACK)
           simulationExecution = true
 //        case x if advertisementList.nonEmpty && x == 5 =>
 //          if (!waitingForACK.contains(("Messaging.Advertise", advertisementList.head._1))) {
@@ -169,7 +168,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
 //          }
         case x if advertisementList.nonEmpty && x == 5 =>
           if (!waitingForACK.contains(("Messaging.Advertise", advertisementList.head._1))) {
-              sendPublication("Test", ("gt", 10), 22, NONE)
+              sendPublication("Test", ("gt", 10), 22, ACK)
           }
           simulationExecution = true
         case _ =>
@@ -178,7 +177,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
     if (mode == SUBSCRIBER) {
       option match {
         case x if x == 10  =>
-          sendSubscription("Test", ("gt", 8), NONE)
+          sendSubscription("Test", ("gt", 8), ACK)
           simulationExecution = true
 //        case x if subscriptionList.nonEmpty && x == 5 =>
 //          if (!waitingForACK.contains(("Messaging.Subscribe", subscriptionList.head._1))) {
