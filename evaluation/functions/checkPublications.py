@@ -48,12 +48,54 @@ def getExpectedPublications(sentPublications, validSubscriptions, unsubscription
                                 expectedPublications[nodeId].append(publication)
                                 copiedPublications.remove(publication)
                                 break
-        return expectedPublications
+    return expectedPublications
 
 
 def checkPublications(expectedPublications, receivedPublications):
 
-    missingPubs = {}
+    subscriberStats = defaultdict(lambda: {})
+
+    def getTimestampsPublications(publications):
+
+        timestampsPubs = {}
+        for publication in publications:
+            pubId = getIdMessage(publication['ID'])
+            if pubId not in timestampsPubs:
+                timestampsPubs[pubId] = publication['timestamp']
+
+        return timestampsPubs
+
+    for nodeId in expectedPublications:
+        if nodeId in receivedPublications:
+
+            expectedTimestamps = getTimestampsPublications(expectedPublications[nodeId])
+            receivedTimestamps = getTimestampsPublications(receivedPublications[nodeId])
+
+            averageWait = 0
+            receivedCounter = 0
+            missingCounter = 0
+            for pubId in expectedTimestamps:
+                if pubId in receivedTimestamps:
+                    waitingTime = receivedTimestamps[pubId]-expectedTimestamps[pubId]
+                    averageWait += waitingTime
+                    receivedCounter += 1
+                else:
+                    missingCounter += 1
+
+            subscriberStats[nodeId]['missingPubs'] = missingCounter
+            subscriberStats[nodeId]['receivedPubs'] = receivedCounter
+            subscriberStats[nodeId]['missRate'] = round(missingCounter/(receivedCounter+missingCounter), 2)
+            if receivedCounter == 0:
+                receivedCounter = 1
+
+            subscriberStats[nodeId]['waitTime'] = round(averageWait/receivedCounter, 2)
+
+    return subscriberStats
+
+
+def checkPotentialPublications(expectedPublications, potentialExpectedPublications):
+
+    potentialPublications = defaultdict(lambda: {})
 
     def getIdsPublications(publications):
 
@@ -63,10 +105,14 @@ def checkPublications(expectedPublications, receivedPublications):
                 ids.append(getIdMessage(publication['ID']))
         return ids
     for nodeId in expectedPublications:
-        if nodeId in receivedPublications:
+        if nodeId in potentialExpectedPublications:
 
-            expectedIds = getIdsPublications(expectedPublications[nodeId])
-            receivedIds = getIdsPublications(receivedPublications[nodeId])
-            missingPubs[nodeId] = list(set(expectedIds) - set(receivedIds))
+            expectedIds = set(getIdsPublications(expectedPublications[nodeId]))
+            potentialIds = set(getIdsPublications(potentialExpectedPublications[nodeId]))
+            potentialPubs = len(potentialIds.symmetric_difference(expectedIds))
 
-    return missingPubs
+            potentialPublications[nodeId]["potentialPubs"] = potentialPubs
+            potentialPublications[nodeId]["potentialPubsRate"] = round(
+                potentialPubs/(potentialPubs+len(expectedIds)), 2)
+
+    return potentialPublications
