@@ -15,14 +15,14 @@ RUN apt-get -y install git openjdk-17-jre-headless
 
 
 # Make repo dir and clone git repo
-#RUN mkdir /root/git_repo
-#WORKDIR /root/git_repo
-#RUN git clone https://github.com/tomasherq/DS-G4-Project.git
+RUN mkdir /root/git_repo
+WORKDIR /root/git_repo
+RUN git clone https://github.com/tomasherq/DS-G4-Project.git
 
 # Copy the source files from Dockerfile's folder to the image if you can't clone git
-COPY . ./project
-COPY . ./src
-COPY . ./pom.xml
+#COPY . ./project
+#COPY . ./src
+#COPY . ./pom.xml
 
 #
 # Build stage
@@ -36,8 +36,5 @@ RUN mvn -f ./pom.xml clean compile package
 # Copy generated jar file to original place
 #
 FROM runner AS cont_runner
-#WORKDIR /root/git_repo/DS-G4-Project
+WORKDIR /root/git_repo/DS-G4-Project
 COPY --from=build ./target ./target
-
-# Default command --> we don't need this as we have the command in the compose file
-#CMD ["java",  "-jar",  "./target/DS-Project-V1.0.0-jar-with-dependencies.jar",  "--type",  "broken",  "--ID",  "1"]
