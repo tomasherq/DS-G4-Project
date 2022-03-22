@@ -6,21 +6,18 @@ import Misc.ResourceUtilities
 import Routing.RoutingTable
 import scala.collection.mutable.ListBuffer
 
+import scala.collection.mutable
+import scala.util.Random
+
 class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
 
-  private val subscriptionList = scala.collection.mutable.Map[(Int, Int), Subscription]()
-  private val advertisementList = scala.collection.mutable.Map[(Int, Int), Advertisement]()
-  private val lastHops = scala.collection.mutable.Map[(String, (Int, Int)), Int]()
-  private val promiseList = scala.collection.mutable.Map[(Int, Int), Message]()
-
+  private val lastHops = mutable.Map[(String, (Int, Int)), Int]()
   private val SRT = new RoutingTable()
   private val PRT = new RoutingTable()
   private val NB = ResourceUtilities.getNeighbours(ID)
-  private val IsActive = scala.collection.mutable.Map[(Int, Int), Boolean]()
-  private val StoredPubs = scala.collection.mutable.Map[(Int, Int), List[Int]]()
-
-  // Currently not used, its for GROUPID guarantee
-  private val Groups = List[Int]()
+  private val IsActive = mutable.Map[(Int, Int), Boolean]()
+  private val StoredPubs = mutable.Map[(Int, Int), List[Message]]()
+  private val promiseList = scala.collection.mutable.Map[(Int, Int), Message]()
 
   /**
    * Advertisement methods
@@ -33,7 +30,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
   }
 
   def clearAdvertisement(content: Unadvertise): Unit = {
-    if(advertisementList.contains(content.advertisement.ID)) {
+    if (advertisementList.contains(content.advertisement.ID)) {
       advertisementList -= content.advertisement.ID
       println(advertisementList)
     }
@@ -47,7 +44,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
   }
 
   def clearSubscription(content: Unsubscribe): Unit = {
-    if(subscriptionList.contains(content.subscription.ID)) {
+    if (subscriptionList.contains(content.subscription.ID)) {
       subscriptionList -= content.subscription.ID
       println(subscriptionList)
     }
@@ -79,7 +76,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
     }
     for (hop <- nextHops) {
       println("Forwarding Advertisement to " + hop)
-      sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp()), hop) // Flood to next hops
+      sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp), hop) // Flood to next hops
     }
     processAdvertisement(content)
 
@@ -116,13 +113,13 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
     }
     for (hop <- nextHops) {
       println("Forwarding Unadvertisement to " + hop)
-      sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp()), hop) // Flood to next hops
+      sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp), hop) // Flood to next hops
     }
     clearAdvertisement(content)
   }
 
   /**
-   *  Subscription methods
+   * Subscription methods
    */
   def receiveSubscription(message: Message): Unit = {
     println("Receiving Subscription")
@@ -135,6 +132,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
     lastHops += ((messageType, s) -> lastHop)
 
     val advs: List[(Int, Int)] = SRT.findMatch(content.subscription)
+
     var nextHopsSet: Set[Int] = Set[Int]()
     if (advs.isEmpty) {
       promiseList += (content.subscription.ID -> message)
@@ -148,8 +146,9 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
         }
       }
     }
+
     val nextHops: List[Int] = nextHopsSet.toList diff List(lastHop)
-    val coverSub: List[Int] = findCoveringSub()
+    val coverSub: List[Int] = findCoveringSub(content.subscription)
     val isEB = (NB diff List(lastHop)).isEmpty
 
     PRT.addRoute(s, lastHop, content.subscription.pClass, content.subscription.pAttributes)
@@ -171,14 +170,24 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
           startAckTimer(messageType, s)
           for (hop <- nextHops) {
             println("Forwarding Subscription to " + hop)
-            sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp()), hop)
+            sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp), hop)
           }
         }
-      case TIME | GROUPID => ???
+      case TIME => //TODO Check if this works
+        val timestampSubscription = message.timestamp
+        advs.map(ad => {
+          val publications = StoredPubs.get(ad._1, ad._2).asInstanceOf[List[Message]].filter(_.timestamp > timestampSubscription)
+          publications.map(publication => {
+            sendMessage(new Message(getMessageID(), SocketData, message.sender.ID, publication.content, getCurrentTimestamp), message.sender.ID)
+          })
+        })
       case NONE =>
+        if ((coverSub.nonEmpty || nextHops.isEmpty) && isEB) {
+          IsActive += (s -> true)
+        }
         for (hop <- nextHops) {
           println("Forwarding Subscription to " + hop)
-          sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp()), hop)
+          sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp), hop)
         }
     }
     processSubscription(content)
@@ -202,15 +211,16 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
         nextHopsSet += candidateDestination
       }
     }
+
     val nextHops: List[Int] = nextHopsSet.toList diff List(lastHop)
-    val coverSub: List[Int] = findCoveringSub()
+    val coverSub: List[Int] = findCoveringSub(content.subscription)
     val isEB = (NB diff List(lastHop)).isEmpty
 
     PRT.deleteRoute(s)
 
     content.guarantee match {
       case ACK =>
-        if (isEB){
+        if (isEB) {
           IsActive += (s -> false)
         }
         if (coverSub.nonEmpty || nextHops.isEmpty) {
@@ -225,14 +235,24 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
           startAckTimer(messageType, s)
           for (hop <- nextHops) {
             println("Forwarding Unsubscription to " + hop)
-            sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp()), hop)
+            sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp), hop)
           }
         }
-      case TIME | GROUPID => ??? //TODO: If time allows other guarantee types will be implemented
+      case TIME => //TODO Check if this works
+        val timestampSubscription = message.timestamp
+        advs.map(ad => {
+          val publications = StoredPubs.get(ad._1, ad._2).asInstanceOf[List[Message]].filter(_.timestamp > timestampSubscription)
+          publications.map(publication => {
+            sendMessage(new Message(getMessageID(), SocketData, message.sender.ID, publication.content, getCurrentTimestamp), message.sender.ID)
+          })
+        })
       case NONE =>
+        if ((coverSub.nonEmpty || nextHops.isEmpty) && isEB) {
+          IsActive += (s -> false)
+        }
         for (hop <- nextHops) {
           println("Forwarding Unsubscription to " + hop)
-          sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp()), hop)
+          sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp), hop)
         }
     }
     clearSubscription(content)
@@ -242,8 +262,63 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
    * Publication methods
    */
   def receivePublication(message: Message): Unit = {
-    println("Receiving Publication")
-    // TODO To be implemented
+    println("Receiving Publication from " + message.sender.ID)
+
+    val content: Publish = message.content.asInstanceOf[Publish]
+    val messageType: String = content.getClass.toString
+    val lastHop: Int = message.sender.ID
+    val p: (Int, Int) = content.publication.ID
+
+    lastHops += ((messageType, p) -> lastHop)
+    val isEB = (NB diff List(lastHop)).isEmpty
+
+    if (isEB) {
+      if (StoredPubs.contains(content.publication.ID)) {
+        val storedPubList: List[Message] = message :: StoredPubs(content.publication.ID)
+        StoredPubs += (content.publication.ID -> storedPubList)
+      } else {
+        StoredPubs += (content.publication.ID -> List(message))
+      }
+    }
+
+    val subs: List[(Int, Int)] = PRT.findMatch(content.publication)
+
+    println(subs)
+
+    var nextHopsSet: Set[Int] = Set[Int]()
+
+    for (s <- subs) {
+      content.guarantee match {
+        case ACK | NONE =>
+          //if (IsActive(s)) {
+            val candidateDestination = PRT.getRoute(s)._1
+            if (NB.contains(candidateDestination)) {
+              nextHopsSet += candidateDestination
+            }
+         // }
+        case TIME => //TODO
+      }
+    }
+
+    val nextHops: List[Int] = nextHopsSet.toList diff List(lastHop)
+
+    for (hop <- nextHops) {
+      println("Forwarding Publication to " + hop)
+      sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp), hop) // Flood to next hops
+    }
+
+    if (content.guarantee == ACK) {
+      if ((nextHops intersect NB).isEmpty) {
+        sendACK(messageType, p, lastHop)
+      } else {
+        startAckTimer(messageType, p)
+        for (hop <- nextHops) {
+          if (NB.contains(hop)) {
+            ACKS += ((messageType, p, hop) -> false)
+          }
+        }
+      }
+    }
   }
 
   /**
@@ -253,7 +328,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
     println("Sending " + messageType +" Ack Response to " + lastHop)
 
     val ACK = AckResponse(messageType, ID)
-    sendMessage(new Message(getMessageID(), SocketData, lastHop, ACK, getCurrentTimestamp()), lastHop)
+    sendMessage(new Message(getMessageID(), SocketData, lastHop, ACK, getCurrentTimestamp), lastHop)
   }
 
   def receiveACK(message: Message): Unit = {
@@ -262,9 +337,9 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
     val ACK = message.content.asInstanceOf[AckResponse]
     val messageType = ACK.messageType
 
-    if ((message.timestamp.getTime - timestamps(messageType, ACK.ID).getTime) < 1500) {
+    if ((message.timestamp - timestamps(messageType, ACK.ID)) < 1500 && !ACK.timeout) {
 
-      println("Processing of ACK took: " + (message.timestamp.getTime - timestamps(messageType, ACK.ID).getTime) + "ms")
+      println("Processing of ACK took: " + (message.timestamp - timestamps(messageType, ACK.ID)) + "ms")
 
       ACKS += ((messageType, ACK.ID, message.sender.ID) -> true)
 
@@ -277,10 +352,10 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
         }
         val destinationID = lastHops(messageType, ACK.ID)
         println("Sending " + messageType + "  ACK Response to " + destinationID)
-        sendMessage(new Message(getMessageID(), SocketData, destinationID, ACK, getCurrentTimestamp()), destinationID)
+        sendMessage(new Message(getMessageID(), SocketData, destinationID, ACK, getCurrentTimestamp), destinationID)
       }
     } else {
-      sendTimeOut()
+      sendTimeOut(ACK)
     }
   }
 
@@ -293,13 +368,34 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
     true
   }
 
-  def findCoveringSub(): List[Int] = {
-    // TODO find the covering sub. This is an optimization. s′∈ PRT : s' ⊆ s
-    List[Int]()
+  def findCoveringSub(subscription: Subscription): List[Int] = {
+    // TODO Check if this works. s′∈ PRT : s' ⊆ s
+    val coverSubs: List[(Int, Int)] = PRT.findMatch(subscription)
+    var routesCover: Set[Int] = Set[Int]()
+    for (sub <- coverSubs) {
+      val candidateDestination = PRT.getRoute(sub)._1
+      if (NB.contains(candidateDestination)) {
+        routesCover += candidateDestination
+      }
+    }
+    routesCover.toList
   }
 
-  def sendTimeOut(): Unit = {
-    // TODO To be implemented, not strictly necessary
+  def sendTimeOut(ACK:AckResponse): Unit = {
+    val destinationID = lastHops(ACK.messageType, ACK.ID)
+
+    ACK.messageType match {
+      case "Message.Subscription" =>
+        PRT.deleteRoute(ACK.ID)
+        subscriptionList -= ACK.ID
+      case "Message.Advertisement" =>
+        SRT.deleteRoute(ACK.ID)
+        advertisementList -= ACK.ID
+      //TODO: Add unsub/unad. This requires a rewriting of the way we store these.
+    }
+    ACK.timeout = true
+
+    sendMessage(new Message(getMessageID(), SocketData, destinationID, ACK, getCurrentTimestamp), destinationID)
   }
 
   override def execute(): Unit = {
@@ -307,7 +403,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
     super.startReceiver()
 
     while (true) {
-      val rand = new scala.util.Random
+      val rand = new Random
       val randomNetworkDelay = 20 + rand.nextInt(( 40 - 20) + 1)
       Thread.sleep(randomNetworkDelay)
 
@@ -315,10 +411,16 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
         println("Retrieving a new message...")
         val message = receiver.getFirstFromQueue()
 
+        receivedMessages += message
+        if (receivedMessages.toList.length > messageSaveThreshold) {
+          writeFileMessages("received")
+        }
+
         message.content match {
           case _ : Advertise => receiveAdvertisement(message)
           case _ : Unadvertise => receiveUnadvertisement(message)
           case _ : Subscribe => receiveSubscription(message)
+          case _ : Publish => receivePublication(message)
           case _ : Unsubscribe => receiveUnsubscription(message)
           case _ : AckResponse => receiveACK(message)
         }
