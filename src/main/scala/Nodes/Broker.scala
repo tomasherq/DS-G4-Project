@@ -4,6 +4,7 @@ import Messaging.GuaranteeType._
 import Messaging._
 import Misc.ResourceUtilities
 import Routing.RoutingTable
+import scala.collection.mutable.ListBuffer
 
 import scala.collection.mutable
 import scala.util.Random
@@ -16,6 +17,7 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
   private val NB = ResourceUtilities.getNeighbours(ID)
   private val IsActive = mutable.Map[(Int, Int), Boolean]()
   private val StoredPubs = mutable.Map[(Int, Int), List[Message]]()
+  private val promiseList = scala.collection.mutable.Map[(Int, Int), Message]()
 
   /**
    * Advertisement methods
@@ -77,6 +79,12 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
       sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp), hop) // Flood to next hops
     }
     processAdvertisement(content)
+
+    // Check if we have some suitable sub in the promise list
+    val promises: List[Message] = findMatchReverse(content.advertisement)
+    for (item <- promises) {
+      receiveSubscription(new Message(getMessageID(), item.sender, item.destination, item.content, getCurrentTimestamp()))
+    }
   }
 
   def receiveUnadvertisement(message: Message): Unit = {
@@ -126,10 +134,16 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
     val advs: List[(Int, Int)] = SRT.findMatch(content.subscription)
 
     var nextHopsSet: Set[Int] = Set[Int]()
-    for (ad <- advs) {
-      val candidateDestination = SRT.getRoute(ad)._1
-      if (NB.contains(candidateDestination)) {
-        nextHopsSet += candidateDestination
+    if (advs.isEmpty) {
+      promiseList += (content.subscription.ID -> message)
+      println("Sub added to promise list: " + promiseList)
+    }
+    else {
+      for (ad <- advs) {
+        val candidateDestination = SRT.getRoute(ad)._1
+        if (NB.contains(candidateDestination)) {
+          nextHopsSet += candidateDestination
+        }
       }
     }
 
@@ -412,5 +426,17 @@ class Broker(override val ID: Int, val endpoints: List[Int]) extends Node(ID) {
         }
       }
     }
+  }
+
+  def findMatchReverse(advertisement: Advertisement): List[Message] = {
+    // TODO: Also match attributes
+    val matches: ListBuffer[Message] = ListBuffer[Message]()
+    for (item <- promiseList) {
+      val pClass = item._2.content.asInstanceOf[Subscribe].subscription.pClass
+      if (pClass.equals(advertisement.pClass)){
+        matches += item._2
+      }
+    }
+    matches.toList
   }
 }
