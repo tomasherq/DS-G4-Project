@@ -98,10 +98,6 @@ abstract class Node(val ID: Int) {
     t.start()
   }
 
-  def startAckTimer(messageType: String, ID: (Int, Int)): Unit = {
-    timestamps += ((messageType, ID) -> getCurrentTimestamp)
-  }
-
   def initializeCounters(): Unit = {
     counters += ("Message" -> 1)
     counters += ("Advertisements" -> 1)

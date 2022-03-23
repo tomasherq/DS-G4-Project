@@ -71,17 +71,13 @@ class RoutingTable {
         val valueRoute = routeInfo._3._2
         val valueSub = publication.pAttributes._2
 
-        if (routeInfo._3._1.equals(publication.pAttributes._1) || publication.pAttributes._1.equals("ne")) {
+        if (routeInfo._3._1.equals(publication.pAttributes._1)) {
 
           validPublication = routeInfo._3._1 match {
             case "gt" => valueRoute <= valueSub
             case "lt" => valueRoute >= valueSub
             case "e" => valueRoute == valueSub
-            case "ne" => valueRoute != valueSub
-          }
-
-          if (publication.pAttributes._1.equals("ne") && routeInfo._3._1.contains("e")) {
-            validPublication = validPublication && valueRoute != valueSub
+            case "ne" => valueRoute == valueSub
           }
         }
 

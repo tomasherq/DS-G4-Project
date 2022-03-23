@@ -30,7 +30,11 @@ class ReceiverSocket(val SocketData: SocketData) extends Thread {
       val ois = new ObjectInputStream(connectionToSocket.socket.getInputStream)
       val messageReceived = ois.readObject.asInstanceOf[Message]
 
-      messageQueue.enqueue(messageReceived)
+      if (messageQueue.size < 10) {
+        messageQueue.enqueue(messageReceived)
+      } else {
+        println("[DROP] Message dropped from " + SocketData.ID)
+      }
     }
   }
 }
