@@ -135,7 +135,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
         //TODO: Add unsub/unad. This requires a rewriting of the way we store these.
         case "Messaging.Publish" =>
           val publication = publicationList(ACK.ID)
-          //sendPublication()
+        //sendPublication()
         case "Messaging.Unsubscribe" =>
         case "Messaging.Unadvertise" =>
       }

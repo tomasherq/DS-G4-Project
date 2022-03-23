@@ -83,6 +83,7 @@ class Broker(override val ID: Int, val NB: List[Int]) extends Node(ID) {
     for (item <- promises) {
       println("[PROMISE] Forwarding subscription to " + item.destination)
       receiveSubscription(item)
+      promiseList -= item.asInstanceOf[Subscribe].subscription.ID
     }
   }
 
