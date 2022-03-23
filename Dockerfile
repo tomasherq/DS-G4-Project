@@ -38,6 +38,3 @@ RUN mvn -f ./pom.xml clean compile package
 FROM runner AS cont_runner
 #WORKDIR /root/git_repo/DS-G4-Project
 COPY --from=build ./target ./target
-
-# Default command --> we don't need this as we have the command in the compose file
-#CMD ["java",  "-jar",  "./target/DS-Project-V1.0.0-jar-with-dependencies.jar",  "--type",  "broken",  "--ID",  "1"]
