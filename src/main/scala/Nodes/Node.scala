@@ -26,7 +26,7 @@ abstract class Node(val ID: Int) {
   protected val subscriptionList: mutable.Map[(Int, Int), Subscription] = mutable.Map[(Int, Int), Subscription]()
   protected val advertisementList: mutable.Map[(Int, Int), Advertisement] = mutable.Map[(Int, Int), Advertisement]()
 
-  protected val messageSaveThreshold = 1
+  protected val messageSaveThreshold = 10
 
   protected var sentMessages: Set[Message] = Set[Message]()
   protected var receivedMessages: Set[Message] = Set[Message]()
@@ -110,7 +110,7 @@ abstract class Node(val ID: Int) {
   }
 
   def execute(): Unit = {
-    randomGenerator.setSeed(100)
+    randomGenerator.setSeed(ID)
     initializeCounters()
   }
 }

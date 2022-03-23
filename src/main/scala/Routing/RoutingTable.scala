@@ -9,6 +9,10 @@ class RoutingTable {
 
   private val table = mutable.Map[(Int, Int), (Int, String, (String, Int))]()
 
+  def getTable(): mutable.Map[(Int, Int), (Int, String, (String, Int))] = {
+    table
+  }
+
   def addRoute(ID: (Int, Int), Destination: Int, pClass: String, pAttribute: (String, Int)): Unit = {
     table += (ID -> (Destination, pClass, pAttribute))
   }
@@ -37,16 +41,13 @@ class RoutingTable {
         val valueRoute = routeInfo._3._2
         val valueSub = subscription.pAttributes._2
 
-        if (routeInfo._3._1.equals(subscription.pAttributes._1) || subscription.pAttributes._1.equals("ne")) {
+        if (routeInfo._3._1.equals(subscription.pAttributes._1)) {
 
           validSubscription = routeInfo._3._1 match {
             case "gt" => valueRoute >= valueSub
             case "lt" => valueRoute <= valueSub
             case "e" => valueRoute == valueSub
-          }
-
-          if (subscription.pAttributes._1.equals("ne") && routeInfo._3._1.contains("e")) {
-            validSubscription = validSubscription && valueRoute != valueSub
+            case "ne" => valueRoute == valueSub
           }
         }
 
@@ -76,6 +77,7 @@ class RoutingTable {
             case "gt" => valueRoute <= valueSub
             case "lt" => valueRoute >= valueSub
             case "e" => valueRoute == valueSub
+            case "ne" => valueRoute != valueSub
           }
 
           if (publication.pAttributes._1.equals("ne") && routeInfo._3._1.contains("e")) {
