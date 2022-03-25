@@ -449,10 +449,8 @@ class Broker(override val ID: Int, val NB: List[Int]) extends Node(ID) {
         println("Retrieving a new message...")
         val message = receiver.getFirstFromQueue()
 
-        receivedMessages += message
-        if (receivedMessages.toList.length > messageSaveThreshold) {
-          writeFileMessages("received")
-        }
+        writeFileMessages("received",message)
+
 
         message.content match {
           case _ : Advertise => receiveAdvertisement(message)
