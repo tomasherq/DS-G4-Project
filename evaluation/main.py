@@ -6,6 +6,8 @@ from functions.checkPublications import *
 
 RUNS_DIRECTORY = "../runs/run3"
 
+# Get retransmissions and timeouts from ACKs.
+
 
 def getSumOfField(dictionary, field):
     result = 0
