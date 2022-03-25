@@ -51,7 +51,7 @@ def getExpectedPublications(sentPublications, validSubscriptions, unsubscription
     return expectedPublications
 
 
-def checkPublications(expectedPublications, receivedPublications):
+def checkPublications(expectedPublications, receivedPublications, retransPublications):
 
     subscriberStats = defaultdict(lambda: {})
 
@@ -74,19 +74,32 @@ def checkPublications(expectedPublications, receivedPublications):
             averageWait = 0
             receivedCounter = 0
             missingCounter = 0
+            succesRetrans = 0
+            failRetrans = 0
             for pubId in expectedTimestamps:
                 if pubId in receivedTimestamps:
                     waitingTime = receivedTimestamps[pubId]-expectedTimestamps[pubId]
                     averageWait += waitingTime
                     receivedCounter += 1
+                    if pubId in retransPublications:
+                        succesRetrans += 1
+
                 else:
                     missingCounter += 1
-
+                    if pubId in retransPublications:
+                        failRetrans += 1
             subscriberStats[nodeId]['missingPubs'] = missingCounter
             subscriberStats[nodeId]['receivedPubs'] = receivedCounter
             subscriberStats[nodeId]['missRate'] = round(missingCounter/(receivedCounter+missingCounter), 2)
-            if receivedCounter == 0:
+            if receivedCounter == 0 or succesRetrans:
                 receivedCounter = 1
+
+            subscriberStats[nodeId]["totalRetrans"] = succesRetrans+failRetrans
+            subscriberStats[nodeId]["succesRetrans"] = succesRetrans
+            subscriberStats[nodeId]["failRetrans"] = failRetrans
+            subscriberStats[nodeId]["successRetrans"] = succesRetrans / \
+                (succesRetrans+failRetrans) if succesRetrans > 0 else 0
+            subscriberStats[nodeId]["retransRatio"] = receivedCounter/succesRetrans if succesRetrans > 0 else 0
 
             subscriberStats[nodeId]['waitTime'] = round(averageWait/receivedCounter, 2)
 

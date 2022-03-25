@@ -4,7 +4,7 @@ from functions.checkAdvertisements import *
 from functions.checkSubscriptions import *
 from functions.checkPublications import *
 
-RUNS_DIRECTORY = "../runs/run3"
+RUNS_DIRECTORY = "../runs/run1"
 
 # Get retransmissions and timeouts from ACKs.
 
@@ -13,13 +13,16 @@ def getSumOfField(dictionary, field):
     result = 0
     for nodeId in dictionary:
         result += dictionary[nodeId][field]
+    if isinstance(result, float):
+        result = round(result, 2)
+
     return result
 
 
 # I think that the logic is hard to understand
-publisherNodes = ["1"]
+publisherNodes = ["1", "2", "3", "4"]
 
-subscriberNodes = ["4"]
+subscriberNodes = ["5", "6", "7", "8"]
 
 # Measure the traffic per node
 trafficGenerated = {}
@@ -34,7 +37,7 @@ receivedUnadvertisements = {}
 # We have to take into account who wants which publication and if it reaches the destinations
 sentPublications = []
 receivedPublications = {}
-
+retransPublications = []
 
 # Take into account only if it reached the destination!
 sentSubscriptions = {}
@@ -48,6 +51,8 @@ receivedUnsubscriptions = {}
 
 for nodeId in os.listdir(RUNS_DIRECTORY):
 
+    if "root" in nodeId:
+        continue
     nodeDirectory = RUNS_DIRECTORY+'/'+nodeId
 
     if nodeId in publisherNodes:
@@ -57,6 +62,7 @@ for nodeId in os.listdir(RUNS_DIRECTORY):
         receivedUnsubscriptions[nodeId] = readReceivedUnsubscriptions(nodeDirectory)
         sentPublications += readSentPublications(nodeDirectory)
         sentUnadvertisements += readSentUnadvertisements(nodeDirectory)
+        retransPublications += readTimeoutACK(nodeDirectory)
 
     elif nodeId in subscriberNodes:
 
@@ -91,31 +97,34 @@ potentialExpectedPublications = getExpectedPublications(
     sentPublications, potentialSubscriptions, unsubscriptionsSummary)
 
 
-subscriberStats = checkPublications(expectedPublications, receivedPublications)
+subscriberStats = checkPublications(expectedPublications, receivedPublications, retransPublications)
 potentialPublications = checkPotentialPublications(expectedPublications, potentialExpectedPublications)
 
 
 # Creation of the summary
+numberSubs = len(subscriberNodes)
+
 summary = {}
 summary['n_nodes'] = len(os.listdir(RUNS_DIRECTORY))
 summary['n_publishers'] = len(publisherNodes)
-summary['n_subscribers'] = len(subscriberNodes)
+summary['n_subscribers'] = numberSubs
 summary['n_brokers'] = summary['n_nodes'] - len(publisherNodes) - len(subscriberNodes)
 summary['stats'] = {}
-summary['stats']['avg_wait_time'] = getSumOfField(subscriberStats, "waitTime")/summary['n_subscribers']
+summary['stats']['avg_wait_time'] = getSumOfField(subscriberStats, "waitTime")/numberSubs
 summary['stats']['traffic_sent'] = format_bytes(trafficGenerated["totalSent"])
 summary['stats']['traffic_sent_bytes'] = trafficGenerated["totalSent"]
 summary['stats']['avg_traffic_sent'] = format_bytes(trafficGenerated["totalSent"]/summary['n_nodes'])
-summary['stats']['recv_pubs'] = getSumOfField(subscriberStats, "receivedPubs")/summary['n_subscribers']
-summary['stats']['avg_recv_pubs'] = getSumOfField(subscriberStats, "receivedPubs")/summary['n_subscribers']
+summary['stats']['recv_pubs'] = getSumOfField(subscriberStats, "receivedPubs")
+summary['stats']['avg_recv_pubs'] = getSumOfField(subscriberStats, "receivedPubs")/numberSubs
 summary['stats']['miss_pubs'] = getSumOfField(subscriberStats, "missingPubs")
-summary['stats']['avg_miss_pubs'] = getSumOfField(subscriberStats, "missingPubs")/summary['n_subscribers']
-summary['stats']['avg_miss_rate'] = getSumOfField(subscriberStats, "missRate")/summary['n_subscribers']
-summary['stats']['pot_pubs_miss'] = getSumOfField(
-    potentialPublications, "potentialPubs")/summary['n_subscribers']
-summary['stats']['pot_pubs_miss_rate'] = getSumOfField(
-    potentialPublications, "potentialPubsRate")/summary['n_subscribers']
-
+summary['stats']['avg_miss_pubs'] = getSumOfField(subscriberStats, "missingPubs")
+summary['stats']['avg_miss_rate'] = getSumOfField(subscriberStats, "missRate")/numberSubs
+summary['stats']['avg_pot_pubs_miss'] = getSumOfField(potentialPublications, "potentialPubs")/numberSubs
+summary['stats']['avg_pot_pubs_miss_rate'] = getSumOfField(potentialPublications, "potentialPubsRate")/numberSubs
+summary['stats']['avg_rtr_pubs'] = getSumOfField(subscriberStats, "totalRetrans")/numberSubs
+summary['stats']['avg_success_rtr_pubs'] = getSumOfField(subscriberStats, "succesRetrans")/numberSubs
+summary['stats']['avg_rtr_pubs_to_normal'] = round(
+    summary['stats']['avg_success_rtr_pubs']/summary['stats']['avg_recv_pubs'], 2)
 
 runName = RUNS_DIRECTORY.split("/")[-1]
 

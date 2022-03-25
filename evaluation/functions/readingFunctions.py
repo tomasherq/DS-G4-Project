@@ -2,6 +2,7 @@ import os
 import ndjson
 from collections import defaultdict
 import json
+from functions.checkAdvertisements import getIdMessage
 
 
 def readByMessageType(directory, messageType):
@@ -75,23 +76,23 @@ def readReceivedUnsubscriptions(nodeDirectory):
 # Acks
 
 
-# def readAcks(directory):
-#     acks = defaultdict(list)
+def readTimeoutACK(directory):
+    acks = defaultdict(list)
+    directory = f'{directory}/received'
+    retransIds = list()
+    for messageFile in os.listdir(directory):
+        with open(f'{directory}/{messageFile}', "r") as file_read:
+            messages = ndjson.load(file_read)
 
-#     for messageFile in os.listdir(directory):
-#         with open(f'{directory}/{messageFile}', "r") as file_read:
-#             messages = ndjson.load(file_read)
+            for message in messages:
+                messageType = list(message['content'].keys())[0]
 
-#             for message in messages:
-#                 messageType = list(message["content"].keys())[0]
+                # Is an ACK
+                if "messageType" == messageType:
+                    if "Publish" in message["content"]["messageType"]:
+                        retransIds.append(getIdMessage(message["content"]['ID']))
 
-#                 # Is an ACK
-#                 if "messageType" == messageType:
-
-#                     sender = message["sender"]["ID"]
-#                     acks[sender].append(getIdMessage(message["content"]["ID"]))
-
-#     return acks
+    return retransIds
 
 
 # def readSentACKS(nodeDirectory):
