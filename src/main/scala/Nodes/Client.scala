@@ -15,7 +15,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
 
   protected var numberOfSimulations = 0
   protected var simulationLimit = 100
-  protected var guaranteeType = ACK
+  protected var guaranteeType = NONE
 
   /**
    * Advertisement methods
@@ -118,7 +118,10 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
       sendMessage(new Message(getMessageID(), SocketData, message.destination, message.content, getCurrentTimestamp), message.destination)
 
       println("Resending message " + ACK.ID + " " + messageType)
-    } else {
+    }else if(ACK.timeout  && ackCounter>3){
+      println("Ack counter surpassed: " + ACK.ID + " " + messageType)
+    }
+    else {
       println("Successfully installed " + ACK.ID + " " + messageType)
     }
   }
@@ -131,8 +134,8 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
 
     var simulationExecution = false
 
-    //val classes: List[String] = List("Apple", "Tesla", "Amazon", "Facebook", "Disney")
-    //val operators: List[String] = List("gt", "lt", "e", "ne")
+    // val classes: List[String] = List("Apple", "Tesla", "Amazon", "Facebook", "Disney")
+    // val operators: List[String] = List("gt", "lt", "e", "ne")
     val classes: List[String] = List("Apple")
     val operators: List[String] = List("gt", "lt")
     val randomOperator: String = operators(Random.nextInt(operators.length))
@@ -173,7 +176,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
             case "e" => valueAdvertisement
             case "ne" => valueAdvertisement + Random.nextInt(offset) // Doesn't really matter here, as long as it's not equal.
           }
-          if (!waitingForACK.contains(("Messaging.Advertise", activeAdvertisement.ID))) {
+          if (guaranteeType==ACK && !waitingForACK.contains(("Messaging.Advertise", activeAdvertisement.ID))) {
             sendPublication(activeAdvertisement.pClass, activeAdvertisement.pAttributes, publicationValue, guaranteeType)
             simulationExecution = true
           }

@@ -38,11 +38,9 @@ def getExpectedPublications(sentPublications, validSubscriptions, unsubscription
                             elif operation == "lt":
                                 if(adValue <= subValue):
                                     valid = True
-                            elif operation == "e":
+                            elif operation == "e" or operation == "ne":
                                 if(adValue == subValue):
                                     valid = True
-                            if subscription["pAttributes"]["_1"] == "ne":
-                                valid = valid and adValue != subValue
 
                             if valid and publication not in expectedPublications[nodeId]:
                                 expectedPublications[nodeId].append(publication)

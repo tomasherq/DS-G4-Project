@@ -16,7 +16,9 @@ class Broker(override val ID: Int, val NB: List[Int]) extends Node(ID) {
   private val IsActive = mutable.Map[(Int, Int), Boolean]()
   private val StoredPubs = mutable.Map[(Int, Int), List[Message]]()
   private val promiseList = mutable.Map[(Int, Int), Message]()
-
+  private val timeoutLimit=200000000
+  private val promiseListActive=true
+  private val timestamps: mutable.Map[(String, (Int, Int),Int),Long] = mutable.Map[(String, (Int, Int),Int),Long]()
   /**
    * Advertisement methods
    */
@@ -64,20 +66,25 @@ class Broker(override val ID: Int, val NB: List[Int]) extends Node(ID) {
     }
 
     processAdvertisement(content)
-
-    val promises: List[Message] = findPromiseMatch(content.advertisement)
-    for (item <- promises) {
-      println("[PROMISE] Forwarding subscription to " + item.destination)
-      receiveSubscription(item)
-      promiseList -= item.content.asInstanceOf[Subscribe].subscription.ID
+    if (promiseListActive){
+      val promises: List[Message] = findPromiseMatch(content.advertisement)
+      for (item <- promises) {
+        println("[PROMISE] Forwarding subscription to " + item.destination)
+        receiveSubscription(item)
+        promiseList -= item.content.asInstanceOf[Subscribe].subscription.ID
+      }
     }
+
+
 
     if (content.guarantee == ACK) {
       if (nextHops.isEmpty) { // Reached an edge broker
+
         sendACK(messageType, a, lastHop)
       } else {
-        startAckTimer(messageType, a)
+
         for (hop <- nextHops) {
+          startAckTimer(messageType, a,hop)
           ACKS += ((messageType, a, hop) -> false)
         }
       }
@@ -111,7 +118,7 @@ class Broker(override val ID: Int, val NB: List[Int]) extends Node(ID) {
         sendACK(messageType, a, lastHop)
       } else {
         for (hop <- nextHops) {
-          startAckTimer(messageType, a)
+          startAckTimer(messageType, a,hop)
           ACKS += ((messageType, a, hop) -> false)
         }
       }
@@ -135,7 +142,7 @@ class Broker(override val ID: Int, val NB: List[Int]) extends Node(ID) {
 
     var nextHopsSet: Set[Int] = Set[Int]()
 
-    if (advs.isEmpty) {
+    if (advs.isEmpty && promiseListActive) {
       promiseList += (content.subscription.ID -> message)
       println("[PROMISE] Subscription added to promise buffer: " + promiseList)
       return
@@ -165,16 +172,18 @@ class Broker(override val ID: Int, val NB: List[Int]) extends Node(ID) {
           }
           sendACK(messageType, s, lastHop)
         } else {
-          for (hop <- nextHops) {
-            ACKS += ((messageType, s, hop) -> false)
-          }
+
           for (hop <- nextHops) {
             println("Forwarding Subscription to " + hop)
             sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp), hop)
           }
-          startAckTimer(messageType, s)
+          for (hop <- nextHops) {
+            ACKS += ((messageType, s, hop) -> false)
+            startAckTimer(messageType, s,hop)
+          }
         }
       case TIME => //TODO Check if this works
+        IsActive += (s -> true)
         val timestampSubscription = message.timestamp
         advs.map(ad => {
           val publications = StoredPubs.get(ad._1, ad._2).asInstanceOf[List[Message]].filter(_.timestamp > timestampSubscription)
@@ -227,16 +236,21 @@ class Broker(override val ID: Int, val NB: List[Int]) extends Node(ID) {
           }
           sendACK(messageType, s, lastHop)
         } else {
-          for (hop <- nextHops) {
-            ACKS += ((messageType, s, hop) -> false)
-          }
+
           for (hop <- nextHops) {
             println("Forwarding Unsubscription to " + hop)
             sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp), hop)
           }
-          startAckTimer(messageType, s)
+          for (hop <- nextHops) {
+            ACKS += ((messageType, s, hop) -> false)
+            startAckTimer(messageType, s,hop)
+          }
         }
       case TIME => //TODO Check if this works
+
+        if (nextHops.isEmpty && isEB) {
+          IsActive += (s -> false)
+        }
         val timestampSubscription = message.timestamp
         advs.map(ad => {
           val publications = StoredPubs.get(ad._1, ad._2).asInstanceOf[List[Message]].filter(_.timestamp > timestampSubscription)
@@ -284,14 +298,11 @@ class Broker(override val ID: Int, val NB: List[Int]) extends Node(ID) {
     var nextHopsSet: Set[Int] = Set[Int]()
 
     for (s <- subs) {
-      content.guarantee match {
-        case ACK | NONE =>
+
           if (IsActive.contains(s)) {
             val candidateDestination = PRT.getRoute(s)._1
             nextHopsSet += candidateDestination
           }
-        case TIME => //TODO
-      }
     }
 
     val nextHops: List[Int] = nextHopsSet.toList diff List(lastHop)
@@ -305,10 +316,11 @@ class Broker(override val ID: Int, val NB: List[Int]) extends Node(ID) {
       if ((nextHops intersect NB).isEmpty) {
         sendACK(messageType, p, lastHop)
       } else {
-        startAckTimer(messageType, p)
+
         for (hop <- nextHops) {
           if (NB.contains(hop)) {
             ACKS += ((messageType, p, hop) -> false)
+            startAckTimer(messageType, p,hop)
           }
         }
       }
@@ -330,12 +342,13 @@ class Broker(override val ID: Int, val NB: List[Int]) extends Node(ID) {
 
     val ACK = message.content.asInstanceOf[AckResponse]
     val messageType = ACK.messageType
+    val senderId=message.sender.ID
 
-    if (timestamps.contains(messageType, ACK.ID) && !ACK.timeout) {
+    if (timestamps.contains(messageType, ACK.ID,senderId) && !ACK.timeout) {
 
-      println("Processing of ACK " + ACK.ID + " took: " + (getCurrentTimestamp - timestamps(messageType, ACK.ID)) + "ms")
+      println("Processing of ACK " + ACK.ID + " took: " + (getCurrentTimestamp - timestamps(messageType, ACK.ID,senderId)) + "ms")
 
-      timestamps -= ((messageType, ACK.ID))
+      timestamps -= ((messageType, ACK.ID,senderId))
 
       ACKS += ((messageType, ACK.ID, message.sender.ID) -> true)
 
@@ -400,17 +413,17 @@ class Broker(override val ID: Int, val NB: List[Int]) extends Node(ID) {
     matches.toList
   }
 
-  def startAckTimer(messageType: String, ID: (Int, Int)): Unit = {
-    timestamps += ((messageType, ID) -> getCurrentTimestamp)
+  def startAckTimer(messageType: String, ID: (Int, Int),hop:Int): Unit = {
+    timestamps += ((messageType, ID,hop) -> getCurrentTimestamp)
 
     val t1 = new Thread(new Runnable() {
       override def run(): Unit = {
         while (true) {
           Thread.sleep(200)
-          if (!timestamps.contains(messageType, ID)) return
-          if (getCurrentTimestamp - timestamps(messageType, ID) > 2000) {
-            timestamps -= ((messageType, ID))
-            sendTimeOut(AckResponse(messageType, ID, true))
+          if (!timestamps.contains(messageType,ID,hop)){  return}
+          if (getCurrentTimestamp - timestamps(messageType,ID,hop) > timeoutLimit) {
+            // timestamps -= ((messageType, ID))
+            // sendTimeOut(AckResponse(messageType, ID, true))
           }
         }
       }

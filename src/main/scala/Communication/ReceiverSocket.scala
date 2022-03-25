@@ -10,6 +10,7 @@ import scala.collection.mutable
 class ReceiverSocket(val SocketData: SocketData) extends Thread {
 
   private val messageQueue = mutable.Queue[Message]()
+  private val queueLimit=20
 
   def getFirstFromQueue(): Message = {
     messageQueue.dequeue()
@@ -29,8 +30,8 @@ class ReceiverSocket(val SocketData: SocketData) extends Thread {
       val connectionToSocket = socketChannelReceiver.accept
       val ois = new ObjectInputStream(connectionToSocket.socket.getInputStream)
       val messageReceived = ois.readObject.asInstanceOf[Message]
-
-      if (messageQueue.size < 10) {
+      // messageQueue.size < queueLimit || true
+      if (true) {
         messageQueue.enqueue(messageReceived)
       } else {
         println("[DROP] Message dropped from " + SocketData.ID)

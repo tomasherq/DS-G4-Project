@@ -4,7 +4,7 @@ from functions.checkAdvertisements import *
 from functions.checkSubscriptions import *
 from functions.checkPublications import *
 
-RUNS_DIRECTORY = "../runs/run1"
+RUNS_DIRECTORY = "../runs/run7"
 
 # Get retransmissions and timeouts from ACKs.
 
@@ -131,6 +131,8 @@ runName = RUNS_DIRECTORY.split("/")[-1]
 with open(f'results/{runName}.json', 'w') as file_write:
     file_write.write(json.dumps(summary, indent=4))
 
+with open(f'results/{runName}_per_node.json', 'w') as file_write:
+    file_write.write(json.dumps(subscriberStats, indent=4))
 
 # Interesting elements:
 # totalTraficSent
