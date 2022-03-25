@@ -176,7 +176,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
             case "e" => valueAdvertisement
             case "ne" => valueAdvertisement + Random.nextInt(offset) // Doesn't really matter here, as long as it's not equal.
           }
-          if (guaranteeType==ACK && !waitingForACK.contains(("Messaging.Advertise", activeAdvertisement.ID))) {
+          if (guaranteeType!=ACK || !waitingForACK.contains(("Messaging.Advertise", activeAdvertisement.ID))) {
             sendPublication(activeAdvertisement.pClass, activeAdvertisement.pAttributes, publicationValue, guaranteeType)
             simulationExecution = true
           }
