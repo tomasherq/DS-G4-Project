@@ -7,20 +7,21 @@ from functions.checkAdvertisements import getIdMessage
 
 def readByMessageType(directory, messageType):
     messagesRead = list()
-    for messageFile in os.listdir(directory):
-        with open(f'{directory}/{messageFile}', "r") as file_read:
+    if os.path.exists(directory):
+        for messageFile in os.listdir(directory):
+            with open(f'{directory}/{messageFile}', "r") as file_read:
 
-            messages = ndjson.load(file_read)
+                messages = ndjson.load(file_read)
 
-            for message in messages:
+                for message in messages:
 
-                keyTypeMessage = list(message["content"].keys())[0]
+                    keyTypeMessage = list(message["content"].keys())[0]
 
-                if messageType == keyTypeMessage:
+                    if messageType == keyTypeMessage:
 
-                    objectMessage = message["content"][messageType]
-                    objectMessage["timestamp"] = message["timestamp"]
-                    messagesRead.append(message["content"][messageType])
+                        objectMessage = message["content"][messageType]
+                        objectMessage["timestamp"] = message["timestamp"]
+                        messagesRead.append(message["content"][messageType])
     return messagesRead
 
 # Advertisements
@@ -80,17 +81,18 @@ def readTimeoutACK(directory):
     acks = defaultdict(list)
     directory = f'{directory}/received'
     retransIds = list()
-    for messageFile in os.listdir(directory):
-        with open(f'{directory}/{messageFile}', "r") as file_read:
-            messages = ndjson.load(file_read)
+    if os.path.exists(directory):
+        for messageFile in os.listdir(directory):
+            with open(f'{directory}/{messageFile}', "r") as file_read:
+                messages = ndjson.load(file_read)
 
-            for message in messages:
-                messageType = list(message['content'].keys())[0]
+                for message in messages:
+                    messageType = list(message['content'].keys())[0]
 
-                # Is an ACK
-                if "messageType" == messageType:
-                    if "Publish" in message["content"]["messageType"]:
-                        retransIds.append(getIdMessage(message["content"]['ID']))
+                    # Is an ACK
+                    if "messageType" == messageType:
+                        if "Publish" in message["content"]["messageType"]:
+                            retransIds.append(getIdMessage(message["content"]['ID']))
 
     return retransIds
 

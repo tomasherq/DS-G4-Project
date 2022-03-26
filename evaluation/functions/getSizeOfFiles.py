@@ -21,12 +21,14 @@ def format_bytes(size):
 
 
 def getTrafficNode(nodeDirectory):
-    traffic = {}
+    traffic = {"sent": 0, "received": 0}
+    if os.path.exists(f'{nodeDirectory}/sent/'):
+        traffic["sent"] = sum(os.path.getsize(f'{nodeDirectory}/sent/{f}')
+                              for f in os.listdir(f'{nodeDirectory}/sent') if os.path.isfile(f'{nodeDirectory}/sent/{f}'))
 
-    traffic["sent"] = sum(os.path.getsize(f'{nodeDirectory}/sent/{f}')
-                          for f in os.listdir(f'{nodeDirectory}/sent') if os.path.isfile(f'{nodeDirectory}/sent/{f}'))
-    traffic["received"] = sum(os.path.getsize(f'{nodeDirectory}/received/{f}') for f in os.listdir(
-        f'{nodeDirectory}/received') if os.path.isfile(f'{nodeDirectory}/received/{f}'))
+    if os.path.exists(f'{nodeDirectory}/received/'):
+        traffic["received"] = sum(os.path.getsize(f'{nodeDirectory}/received/{f}') for f in os.listdir(
+            f'{nodeDirectory}/received') if os.path.isfile(f'{nodeDirectory}/received/{f}'))
 
     traffic["total"] = traffic["sent"]+traffic["received"]
     return traffic

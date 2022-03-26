@@ -4,7 +4,7 @@ from functions.checkAdvertisements import *
 from functions.checkSubscriptions import *
 from functions.checkPublications import *
 
-RUNS_DIRECTORY = "../runs/run7"
+RUNS_DIRECTORY = "../runs/run8"
 
 # Get retransmissions and timeouts from ACKs.
 
@@ -123,8 +123,13 @@ summary['stats']['avg_pot_pubs_miss'] = getSumOfField(potentialPublications, "po
 summary['stats']['avg_pot_pubs_miss_rate'] = getSumOfField(potentialPublications, "potentialPubsRate")/numberSubs
 summary['stats']['avg_rtr_pubs'] = getSumOfField(subscriberStats, "totalRetrans")/numberSubs
 summary['stats']['avg_success_rtr_pubs'] = getSumOfField(subscriberStats, "succesRetrans")/numberSubs
+
+avg_recv_pubs = summary['stats']['avg_recv_pubs']
+if avg_recv_pubs < 1:
+    avg_recv_pubs = 1
+
 summary['stats']['avg_rtr_pubs_to_normal'] = round(
-    summary['stats']['avg_success_rtr_pubs']/summary['stats']['avg_recv_pubs'], 2)
+    summary['stats']['avg_success_rtr_pubs']/avg_recv_pubs, 2)
 
 runName = RUNS_DIRECTORY.split("/")[-1]
 

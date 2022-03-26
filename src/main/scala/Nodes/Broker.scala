@@ -184,13 +184,23 @@ class Broker(override val ID: Int, val NB: List[Int]) extends Node(ID) {
         }
       case TIME => //TODO Check if this works
         IsActive += (s -> true)
-        val timestampSubscription = message.timestamp
-        advs.map(ad => {
-          val publications = StoredPubs.get(ad._1, ad._2).asInstanceOf[List[Message]].filter(_.timestamp > timestampSubscription)
-          publications.map(publication => {
-            sendMessage(new Message(getMessageID(), SocketData, message.sender.ID, publication.content, getCurrentTimestamp), message.sender.ID)
+        if (isEB) {
+          val timestampSubscription = message.timestamp
+          advs.map(ad => {
+            if (StoredPubs.contains(ad._1, ad._2)) {
+              val publications = StoredPubs.asInstanceOf[List[Message]].filter(_.timestamp > timestampSubscription)
+              publications.map(publication => {
+                sendMessage(new Message(getMessageID(), SocketData, message.sender.ID, publication.content, getCurrentTimestamp), message.sender.ID)
+              })
+            }
+
+
           })
-        })
+        }
+        for (hop <- nextHops) {
+          println("Forwarding Subscription to " + hop)
+          sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp), hop)
+        }
       case NONE =>
         IsActive += (s -> true)
         for (hop <- nextHops) {
@@ -247,21 +257,25 @@ class Broker(override val ID: Int, val NB: List[Int]) extends Node(ID) {
           }
         }
       case TIME => //TODO Check if this works
-
-        if (nextHops.isEmpty && isEB) {
-          IsActive += (s -> false)
+        IsActive += (s -> false)
+        for (hop <- nextHops) {
+          println("Forwarding Unsubscription to " + hop)
+          sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp), hop)
         }
-        val timestampSubscription = message.timestamp
-        advs.map(ad => {
-          val publications = StoredPubs.get(ad._1, ad._2).asInstanceOf[List[Message]].filter(_.timestamp > timestampSubscription)
-          publications.map(publication => {
-            sendMessage(new Message(getMessageID(), SocketData, message.sender.ID, publication.content, getCurrentTimestamp), message.sender.ID)
+        if (isEB) {
+          val timestampSubscription = message.timestamp
+          advs.map(ad => {
+            if(StoredPubs.contains(ad._1, ad._2)){
+              val publications=StoredPubs.asInstanceOf[List[Message]].filter(_.timestamp > timestampSubscription)
+              publications.map(publication => {
+                sendMessage(new Message(getMessageID(), SocketData, message.sender.ID, publication.content, getCurrentTimestamp), message.sender.ID)
+              })
+            }
           })
-        })
-      case NONE =>
-        if (nextHops.isEmpty && isEB) {
-          IsActive += (s -> false)
         }
+
+      case NONE =>
+        IsActive += (s -> false)
         for (hop <- nextHops) {
           println("Forwarding Unsubscription to " + hop)
           sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp), hop)

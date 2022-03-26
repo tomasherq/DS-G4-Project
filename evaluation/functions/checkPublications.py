@@ -28,7 +28,7 @@ def getExpectedPublications(sentPublications, validSubscriptions, unsubscription
                     if subscription["pClass"] == publication["pClass"]:
                         operation = publication["pAttributes"]["_1"]
                         if operation == subscription["pAttributes"]["_1"] or operation == "ne":
-
+                            valid = False
                             adValue = publication["pAttributes"]["_2"]
                             subValue = subscription["pAttributes"]["_2"]
 
@@ -52,6 +52,7 @@ def getExpectedPublications(sentPublications, validSubscriptions, unsubscription
 def checkPublications(expectedPublications, receivedPublications, retransPublications):
 
     subscriberStats = defaultdict(lambda: {})
+    print(receivedPublications)
 
     def getTimestampsPublications(publications):
 
