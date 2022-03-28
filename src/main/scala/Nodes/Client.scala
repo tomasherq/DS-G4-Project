@@ -14,8 +14,8 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
   private val waitingForACK = mutable.Map[(String, (Int, Int)),Int]()
 
   protected var numberOfSimulations = 0
-  protected var simulationLimit = 100
-  protected var guaranteeType = NONE
+  protected var simulationLimit = 2000
+  protected var guaranteeType = ACK
 
   /**
    * Advertisement methods
@@ -134,37 +134,20 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
 
     var simulationExecution = false
 
-    // val classes: List[String] = List("Apple", "Tesla", "Amazon", "Facebook", "Disney")
-    // val operators: List[String] = List("gt", "lt", "e", "ne")
-    val classes: List[String] = List("Apple")
+    val classes: List[String] = List("Apple", "Tesla", "Disney", "Microsoft")
     val operators: List[String] = List("gt", "lt")
     val randomOperator: String = operators(Random.nextInt(operators.length))
     val randomClass: String = classes(Random.nextInt(classes.length))
-    val randomValue: Int = (Random.nextInt(2) * 20) + 20
+    val randomValue: Int = (Random.nextInt(10) * 10) + 10
 
     if (mode == PUBLISHER) {
       option match {
 
-        case x if advertisementList.isEmpty && x > 0 && x < 10 =>
+        case x if advertisementList.size < 8 && x > 0 && x < 50 =>
           sendAdvertisement(randomClass, (randomOperator, randomValue), guaranteeType)
           simulationExecution = true
 
-        case x if advertisementList.nonEmpty && x >= 10 && x < 15   =>
-          sendAdvertisement(randomClass, (randomOperator, randomValue), guaranteeType)
-          simulationExecution = true
-
-          /**
-           * Uncomment this code for Unadvertisements
-           */
-//        case x if advertisementList.nonEmpty && x == 15 =>
-//          val randomAdvertisementKey = advertisementList.keys.toList(Random.nextInt(advertisementList.size))
-//          val activeAdvertisement = advertisementList(randomAdvertisementKey)
-//          if (!waitingForACK.contains(("Messaging.Advertise", activeAdvertisement.ID))) {
-//            sendUnadvertisement(activeAdvertisement, guaranteeType)
-//            simulationExecution = true
-//          }
-
-        case x if advertisementList.nonEmpty && x > 15 && x < 66 =>
+        case x if advertisementList.size > 7 && x > 0 && x < 50 =>
           val randomAdvertisementKey = advertisementList.keys.toList(Random.nextInt(advertisementList.size))
           val activeAdvertisement = advertisementList(randomAdvertisementKey)
           val valueAdvertisement = activeAdvertisement.pAttributes._2
@@ -173,13 +156,12 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
           val publicationValue = operatorAdvertisement match {
             case "gt" => valueAdvertisement + Random.nextInt(offset)
             case "lt" => valueAdvertisement - Random.nextInt(offset)
-            case "e" => valueAdvertisement
-            case "ne" => valueAdvertisement + Random.nextInt(offset) // Doesn't really matter here, as long as it's not equal.
           }
           if (guaranteeType!=ACK || !waitingForACK.contains(("Messaging.Advertise", activeAdvertisement.ID))) {
             sendPublication(activeAdvertisement.pClass, activeAdvertisement.pAttributes, publicationValue, guaranteeType)
             simulationExecution = true
           }
+          
         case _ =>
       }
     }
@@ -187,20 +169,9 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
     if (mode == SUBSCRIBER) {
       option match {
 
-        case x if x >= 66 && x < 71 =>
+        case x if subscriptionList.isEmpty =>
           sendSubscription(randomClass, (randomOperator, randomValue), guaranteeType)
           simulationExecution = true
-
-        /**
-         * Uncomment this code for Unsubscriptions
-         */
-//        case x if subscriptionList.nonEmpty && x >= 71 && x < 73 =>
-//          val randomSubscriptionKey = subscriptionList.keys.toList(Random.nextInt(subscriptionList.size))
-//          val activeSubscription = subscriptionList(randomSubscriptionKey)
-//          if (!waitingForACK.contains(("Messaging.Subscribe", activeSubscription.ID))) {
-//            sendUnsubscription(activeSubscription, guaranteeType)
-//            simulationExecution = true
-//          }
 
         case _ =>
       }
@@ -219,7 +190,13 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
     super.execute()
     super.startReceiver()
 
+    // Safe wait period for brokers to start
     Thread.sleep(5000)
+
+    // Safe wait period for advertisements + release a subscriber every second
+    if (mode == SUBSCRIBER) {
+      Thread.sleep(59000 + (ID * 1000))
+    }
 
     while (true) {
 

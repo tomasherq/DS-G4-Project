@@ -4,44 +4,44 @@ version: "3.9"
 # Define services
 services:
 
-  publisher1:
+  subscriber1:
     # Path of Dockerfile
     build: .
     # The command to execute once the image is created.
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 1 --BID 9 --mode publisher
+    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 1 --BID 16 --mode subscriber
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
       broker_network:
         ipv4_address: 192.168.2.1
 
-  publisher2:
+  subscriber2:
     # Path of Dockerfile
     build: .
     # The command to execute once the image is created.
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 2 --BID 9 --mode publisher
+    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 2 --BID 16 --mode subscriber
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
       broker_network:
         ipv4_address: 192.168.2.2
 
-  publisher3:
+  subscriber3:
     # Path of Dockerfile
     build: .
     # The command to execute once the image is created.
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 3 --BID 11 --mode publisher
+    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 3 --BID 16 --mode subscriber
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
       broker_network:
         ipv4_address: 192.168.2.3
 
-  publisher4:
+  subscriber4:
     # Path of Dockerfile
     build: .
     # The command to execute once the image is created.
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 4 --BID 12 --mode publisher
+    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 4 --BID 17 --mode subscriber
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
@@ -52,7 +52,7 @@ services:
     # Path of Dockerfile
     build: .
     # The command to execute once the image is created.
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 5 --BID 10 --mode subscriber
+    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 5 --BID 17 --mode subscriber
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
@@ -63,7 +63,7 @@ services:
     # Path of Dockerfile
     build: .
     # The command to execute once the image is created.
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 6 --BID 11 --mode subscriber
+    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 6 --BID 17 --mode subscriber
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
@@ -74,7 +74,7 @@ services:
     # Path of Dockerfile
     build: .
     # The command to execute once the image is created.
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 7 --BID 13 --mode subscriber
+    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 7 --BID 18 --mode subscriber
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
@@ -85,144 +85,188 @@ services:
     # Path of Dockerfile
     build: .
     # The command to execute once the image is created.
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 8 --BID 13 --mode subscriber
+    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 8 --BID 18 --mode subscriber
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
       broker_network:
         ipv4_address: 192.168.2.8
 
-  edgebroker9:
+  subscriber9:
     # Path of Dockerfile
     build: .
     # The command to execute once the image is created.
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 9 --NB 15
+    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 9 --BID 18 --mode subscriber
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
       broker_network:
         ipv4_address: 192.168.2.9
 
-  edgebroker10:
+  subscriber10:
     # Path of Dockerfile
     build: .
     # The command to execute once the image is created.
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 10 --NB 19
+    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 10 --BID 19 --mode subscriber
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
       broker_network:
         ipv4_address: 192.168.2.10
 
-  edgebroker11:
+  subscriber11:
     # Path of Dockerfile
     build: .
     # The command to execute once the image is created.
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 11 --NB 14
+    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 11 --BID 19 --mode subscriber
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
       broker_network:
         ipv4_address: 192.168.2.11
 
-  edgebroker12:
+  subscriber12:
     # Path of Dockerfile
     build: .
     # The command to execute once the image is created.
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 12 --NB 19
+    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 12 --BID 19 --mode subscriber
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
       broker_network:
         ipv4_address: 192.168.2.12
 
-  edgebroker13:
+  publisher13:
     # Path of Dockerfile
     build: .
     # The command to execute once the image is created.
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 13 --NB 20
+    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 13 --BID 20 --mode publisher
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
       broker_network:
         ipv4_address: 192.168.2.13
 
-  broker14:
+  publisher14:
     # Path of Dockerfile
     build: .
     # The command to execute once the image is created.
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 14 --NB 11,15
+    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 14 --BID 15 --mode publisher
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
       broker_network:
         ipv4_address: 192.168.2.14
 
-  broker15:
+  edgebroker15:
     # Path of Dockerfile
     build: .
     # The command to execute once the image is created.
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 15 --NB 9,14,16
+    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 15 --NB 20
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
       broker_network:
         ipv4_address: 192.168.2.15
 
-  broker16:
+  edgebroker16:
     # Path of Dockerfile
     build: .
     # The command to execute once the image is created.
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 16 --NB 15,17,18
+    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 16 --NB 23
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
       broker_network:
         ipv4_address: 192.168.2.16
 
-  broker17:
+  edgebroker17:
     # Path of Dockerfile
     build: .
     # The command to execute once the image is created.
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 17 --NB 16
+    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 17 --NB 24
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
       broker_network:
         ipv4_address: 192.168.2.17
 
-  broker18:
+  edgebroker18:
     # Path of Dockerfile
     build: .
     # The command to execute once the image is created.
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 18 --NB 16,19
+    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 18 --NB 23
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
       broker_network:
         ipv4_address: 192.168.2.18
 
-  broker19:
+  edgebroker19:
     # Path of Dockerfile
     build: .
     # The command to execute once the image is created.
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 19 --NB 18,10,12,20
+    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 19 --NB 21
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
       broker_network:
         ipv4_address: 192.168.2.19
 
-  broker20:
+  edgebroker20:
     # Path of Dockerfile
     build: .
     # The command to execute once the image is created.
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 20 --NB 19,13
+    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 20 --NB 21,15
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
       broker_network:
         ipv4_address: 192.168.2.20
+
+  broker21:
+    # Path of Dockerfile
+    build: .
+    # The command to execute once the image is created.
+    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 21 --NB 20,19,22
+    volumes:
+      - ${DIRECTORY_SAVE}:/tmp
+    networks:
+      broker_network:
+        ipv4_address: 192.168.2.21
+
+  broker22:
+    # Path of Dockerfile
+    build: .
+    # The command to execute once the image is created.
+    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 22 --NB 21,23
+    volumes:
+      - ${DIRECTORY_SAVE}:/tmp
+    networks:
+      broker_network:
+        ipv4_address: 192.168.2.22
+
+  broker23:
+    # Path of Dockerfile
+    build: .
+    # The command to execute once the image is created.
+    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 23 --NB 22,16,18,24
+    volumes:
+      - ${DIRECTORY_SAVE}:/tmp
+    networks:
+      broker_network:
+        ipv4_address: 192.168.2.23
+
+  broker24:
+    # Path of Dockerfile
+    build: .
+    # The command to execute once the image is created.
+    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 24 --NB 23,17
+    volumes:
+      - ${DIRECTORY_SAVE}:/tmp
+    networks:
+      broker_network:
+        ipv4_address: 192.168.2.24
 
 # Set up custom network
 networks:
