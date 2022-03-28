@@ -143,11 +143,11 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
     if (mode == PUBLISHER) {
       option match {
 
-        case x if advertisementList.size < 8 && x > 0 && x < 50 =>
+        case x if advertisementList.size < 10 && x > 0 && x < 100 =>
           sendAdvertisement(randomClass, (randomOperator, randomValue), guaranteeType)
           simulationExecution = true
 
-        case x if advertisementList.size > 7 && x > 0 && x < 50 =>
+        case x if advertisementList.size > 9 && x > 0 && x < 100 =>
           val randomAdvertisementKey = advertisementList.keys.toList(Random.nextInt(advertisementList.size))
           val activeAdvertisement = advertisementList(randomAdvertisementKey)
           val valueAdvertisement = activeAdvertisement.pAttributes._2
@@ -161,7 +161,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
             sendPublication(activeAdvertisement.pClass, activeAdvertisement.pAttributes, publicationValue, guaranteeType)
             simulationExecution = true
           }
-          
+
         case _ =>
       }
     }
@@ -195,7 +195,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
 
     // Safe wait period for advertisements + release a subscriber every second
     if (mode == SUBSCRIBER) {
-      Thread.sleep(59000 + (ID * 1000))
+      Thread.sleep(29000 + (ID * 1000))
     }
 
     while (true) {
