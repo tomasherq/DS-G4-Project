@@ -5,5 +5,4 @@ object GuaranteeType extends Enumeration {
 
   val NONE = Value(1, "None")
   val ACK = Value(2, "ACK")
-  val TIME = Value(3, "TIME")
 }

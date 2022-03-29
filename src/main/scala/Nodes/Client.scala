@@ -5,7 +5,6 @@ import Messaging._
 import Nodes.ClientType.{ClientType, PUBLISHER, SUBSCRIBER}
 
 import scala.collection.mutable
-import scala.util.Random
 
 class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) extends Node(ID) {
 
@@ -15,7 +14,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
 
   protected var numberOfSimulations = 0
   protected var simulationLimit = 250
-  protected var guaranteeType = NONE
+  protected var guaranteeType = ACK
   protected var startDelayBaseline = false
 
   /**
@@ -119,7 +118,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
       sendMessage(new Message(getMessageID(), SocketData, message.destination, message.content, getCurrentTimestamp), message.destination)
 
       println("Resending message " + ACK.ID + " " + messageType)
-    }else if(ACK.timeout  && ackCounter>3){
+    }else if(ACK.timeout  && ackCounter > 3){
       println("Ack counter surpassed: " + ACK.ID + " " + messageType)
     }
     else {
@@ -131,20 +130,20 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
    * Simulate random  behaviour
    */
   private def simulateClientBehaviour(): Unit = {
-    val option = randomGenerator.nextInt(1000)
+    val option = randomGenerator.nextInt(2500)
 
     var simulationExecution = false
 
     val classes: List[String] = List("Apple", "Tesla", "Disney", "Microsoft")
     val operators: List[String] = List("gt", "lt")
-    val randomOperator: String = operators(Random.nextInt(operators.length))
-    val randomClass: String = classes(Random.nextInt(classes.length))
-    val randomValue: Int = (Random.nextInt(20) * 5) + 5
+    val randomOperator: String = operators(randomGenerator.nextInt(operators.length))
+    val randomClass: String = classes(randomGenerator.nextInt(classes.length))
+    val randomValue: Int = (randomGenerator.nextInt(20) * 5) + 5
 
     if (mode == PUBLISHER) {
       option match {
 
-        case x if advertisementList.size < 10 && x > 0 && x < 100 =>
+        case x if advertisementList.size < 10 && x > 0 && x < 50 =>
           sendAdvertisement(randomClass, (randomOperator, randomValue), guaranteeType)
           simulationExecution = true
 
@@ -153,14 +152,14 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
             Thread.sleep(10000)
             startDelayBaseline = true
           }
-          val randomAdvertisementKey = advertisementList.keys.toList(Random.nextInt(advertisementList.size))
+          val randomAdvertisementKey = advertisementList.keys.toList(randomGenerator.nextInt(advertisementList.size))
           val activeAdvertisement = advertisementList(randomAdvertisementKey)
           val valueAdvertisement = activeAdvertisement.pAttributes._2
           val operatorAdvertisement  = activeAdvertisement.pAttributes._1
           val offset = 101 - valueAdvertisement
           val publicationValue = operatorAdvertisement match {
-            case "gt" => valueAdvertisement + Random.nextInt(offset)
-            case "lt" => valueAdvertisement - Random.nextInt(valueAdvertisement)
+            case "gt" => valueAdvertisement + randomGenerator.nextInt(offset)
+            case "lt" => valueAdvertisement - randomGenerator.nextInt(valueAdvertisement)
           }
           if (guaranteeType!=ACK || !waitingForACK.contains(("Messaging.Advertise", activeAdvertisement.ID))) {
             sendPublication(activeAdvertisement.pClass, activeAdvertisement.pAttributes, publicationValue, guaranteeType)
@@ -196,7 +195,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
     super.startReceiver()
 
     // Safe wait period for brokers to start
-    Thread.sleep(5000)
+    Thread.sleep(3000)
 
     // Safe wait period for advertisements + release a subscriber every second
     if (mode == SUBSCRIBER) {
@@ -205,8 +204,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
 
     while (true) {
 
-      val rand = new Random
-      val randomNetworkDelay = 10 + rand.nextInt(20)
+      val randomNetworkDelay = 10 + randomGenerator.nextInt(40)
       Thread.sleep(randomNetworkDelay)
 
       while (!receiver.isQueueEmpty) {

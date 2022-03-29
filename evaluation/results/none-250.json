@@ -1,0 +1,22 @@
+{
+    "n_nodes": 25,
+    "n_publishers": 2,
+    "n_subscribers": 12,
+    "n_brokers": 11,
+    "stats": {
+        "avg_wait_time": 143.21833333333333,
+        "traffic_sent": "802.26 KB",
+        "traffic_sent_bytes": 821513,
+        "avg_traffic_sent": "32.09 KB",
+        "recv_pubs": 334,
+        "avg_recv_pubs": 27.833333333333332,
+        "miss_pubs": 2,
+        "avg_miss_pubs": 2,
+        "avg_miss_rate": 0.0025,
+        "avg_pot_pubs_miss": 0.0,
+        "avg_pot_pubs_miss_rate": 0.0,
+        "avg_rtr_pubs": 0.0,
+        "avg_success_rtr_pubs": 0.0,
+        "avg_rtr_pubs_to_normal": 0.0
+    }
+}

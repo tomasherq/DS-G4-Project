@@ -4,7 +4,7 @@ from functions.checkAdvertisements import *
 from functions.checkSubscriptions import *
 from functions.checkPublications import *
 
-RUNS_DIRECTORY = "/Users/remyduijsens/Documents/Education/Master Computer Science/Q3/Distributed Systems/Project/DS-G4-Project/runs/run7"
+RUNS_DIRECTORY = "../runs/run7"
 
 # Get retransmissions and timeouts from ACKs.
 
