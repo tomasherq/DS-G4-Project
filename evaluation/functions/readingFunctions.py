@@ -18,10 +18,9 @@ def readByMessageType(directory, messageType):
                     keyTypeMessage = list(message["content"].keys())[0]
 
                     if messageType == keyTypeMessage:
-
                         objectMessage = message["content"][messageType]
                         objectMessage["timestamp"] = message["timestamp"]
-                        messagesRead.append(message["content"][messageType])
+                        messagesRead.append(objectMessage)
     return messagesRead
 
 # Advertisements

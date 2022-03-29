@@ -20,9 +20,7 @@ abstract class Node(val ID: Int) {
   protected val randomGenerator: Random = Random
 
   protected val counters: mutable.Map[String, Int] = mutable.Map[String, Int]()
-
   protected val ACKS: mutable.Map[(String, (Int, Int), Int), Boolean] = mutable.Map[(String, (Int, Int), Int), Boolean]()
-
   protected val subscriptionList: mutable.Map[(Int, Int), Subscription] = mutable.Map[(Int, Int), Subscription]()
   protected val advertisementList: mutable.Map[(Int, Int), Advertisement] = mutable.Map[(Int, Int), Advertisement]()
 

@@ -23,7 +23,7 @@ def getExpectedPublications(sentPublications, validSubscriptions, unsubscription
                     if timestampUnsub < publication["timestamp"]:
                         continue
 
-                if subscription["timestamp"] > publication["timestamp"]:
+                if subscription["timestamp"] < publication["timestamp"]:
 
                     if subscription["pClass"] == publication["pClass"]:
                         operation = publication["pAttributes"]["_1"]
@@ -45,14 +45,13 @@ def getExpectedPublications(sentPublications, validSubscriptions, unsubscription
                             if valid and publication not in expectedPublications[nodeId]:
                                 expectedPublications[nodeId].append(publication)
                                 copiedPublications.remove(publication)
-                                break
+                                #break
     return expectedPublications
 
 
-def checkPublications(expectedPublications, receivedPublications, retransPublications):
+def checkPublications(expectedPublications, receivedPublications, retransPublications, subscriberStats):
 
-    subscriberStats = defaultdict(lambda: {})
-    print(receivedPublications)
+    #print(receivedPublications)
 
     def getTimestampsPublications(publications):
 

@@ -1,0 +1,84 @@
+{
+    "1": {
+        "missingPubs": 1,
+        "receivedPubs": 23,
+        "missRate": 0.04,
+        "totalRetrans": 0,
+        "succesRetrans": 0,
+        "failRetrans": 0,
+        "successRetrans": 0,
+        "retransRatio": 0,
+        "waitTime": 819.87
+    },
+    "2": {
+        "missingPubs": 0,
+        "receivedPubs": 13,
+        "missRate": 0.0,
+        "totalRetrans": 0,
+        "succesRetrans": 0,
+        "failRetrans": 0,
+        "successRetrans": 0,
+        "retransRatio": 0,
+        "waitTime": 711.54
+    },
+    "3": {},
+    "4": {
+        "missingPubs": 3,
+        "receivedPubs": 46,
+        "missRate": 0.06,
+        "totalRetrans": 0,
+        "succesRetrans": 0,
+        "failRetrans": 0,
+        "successRetrans": 0,
+        "retransRatio": 0,
+        "waitTime": 735.26
+    },
+    "5": {
+        "missingPubs": 1,
+        "receivedPubs": 13,
+        "missRate": 0.07,
+        "totalRetrans": 0,
+        "succesRetrans": 0,
+        "failRetrans": 0,
+        "successRetrans": 0,
+        "retransRatio": 0,
+        "waitTime": 886.23
+    },
+    "6": {},
+    "7": {},
+    "8": {},
+    "9": {},
+    "10": {
+        "missingPubs": 1,
+        "receivedPubs": 17,
+        "missRate": 0.06,
+        "totalRetrans": 0,
+        "succesRetrans": 0,
+        "failRetrans": 0,
+        "successRetrans": 0,
+        "retransRatio": 0,
+        "waitTime": 626.71
+    },
+    "11": {
+        "missingPubs": 3,
+        "receivedPubs": 13,
+        "missRate": 0.19,
+        "totalRetrans": 0,
+        "succesRetrans": 0,
+        "failRetrans": 0,
+        "successRetrans": 0,
+        "retransRatio": 0,
+        "waitTime": 384.46
+    },
+    "12": {
+        "missingPubs": 4,
+        "receivedPubs": 13,
+        "missRate": 0.24,
+        "totalRetrans": 0,
+        "succesRetrans": 0,
+        "failRetrans": 0,
+        "successRetrans": 0,
+        "retransRatio": 0,
+        "waitTime": 367.62
+    }
+}

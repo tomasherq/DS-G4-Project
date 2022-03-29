@@ -4,15 +4,17 @@ from functions.checkAdvertisements import *
 from functions.checkSubscriptions import *
 from functions.checkPublications import *
 
-RUNS_DIRECTORY = "../runs/run8"
+RUNS_DIRECTORY = "/Users/remyduijsens/Documents/Education/Master Computer Science/Q3/Distributed Systems/Project/DS-G4-Project/runs/run7"
 
 # Get retransmissions and timeouts from ACKs.
 
 
 def getSumOfField(dictionary, field):
     result = 0
+
     for nodeId in dictionary:
-        result += dictionary[nodeId][field]
+        if field in dictionary[nodeId]:
+            result += dictionary[nodeId][field]
     if isinstance(result, float):
         result = round(result, 2)
 
@@ -20,9 +22,9 @@ def getSumOfField(dictionary, field):
 
 
 # I think that the logic is hard to understand
-publisherNodes = ["1", "2", "3", "4"]
+publisherNodes = ["13", "14"]
 
-subscriberNodes = ["5", "6", "7", "8"]
+subscriberNodes = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
 
 # Measure the traffic per node
 trafficGenerated = {}
@@ -89,6 +91,7 @@ missingUnadvertisments = checkAdvertisements(receivedUnadvertisements, sentUnadv
 validSubscriptions, potentialSubscriptions = getValidSubscriptions(
     sentSubscriptions, sentAdvertisements, sentUnadvertisements)
 
+
 unsubscriptionsSummary = getSummaryUnsubscriptions(sentUnsubscriptions)
 
 # Publications
@@ -97,7 +100,11 @@ potentialExpectedPublications = getExpectedPublications(
     sentPublications, potentialSubscriptions, unsubscriptionsSummary)
 
 
-subscriberStats = checkPublications(expectedPublications, receivedPublications, retransPublications)
+subscribersEmpty = {}
+for node in subscriberNodes:
+    subscribersEmpty[node] = {}
+
+subscriberStats = checkPublications(expectedPublications, receivedPublications, retransPublications, subscribersEmpty)
 potentialPublications = checkPotentialPublications(expectedPublications, potentialExpectedPublications)
 
 
@@ -133,10 +140,10 @@ summary['stats']['avg_rtr_pubs_to_normal'] = round(
 
 runName = RUNS_DIRECTORY.split("/")[-1]
 
-with open(f'results/{runName}.json', 'w') as file_write:
+with open(f'/Users/remyduijsens/Documents/Education/Master Computer Science/Q3/Distributed Systems/Project/DS-G4-Project/evaluation/results/{runName}.json', 'w') as file_write:
     file_write.write(json.dumps(summary, indent=4))
 
-with open(f'results/{runName}_per_node.json', 'w') as file_write:
+with open(f'/Users/remyduijsens/Documents/Education/Master Computer Science/Q3/Distributed Systems/Project/DS-G4-Project/evaluation/results/{runName}_per_node.json', 'w') as file_write:
     file_write.write(json.dumps(subscriberStats, indent=4))
 
 # Interesting elements:
