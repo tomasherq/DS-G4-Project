@@ -14,8 +14,9 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
   private val waitingForACK = mutable.Map[(String, (Int, Int)),Int]()
 
   protected var numberOfSimulations = 0
-  protected var simulationLimit = 2000
-  protected var guaranteeType = ACK
+  protected var simulationLimit = 250
+  protected var guaranteeType = NONE
+  protected var startDelayBaseline = false
 
   /**
    * Advertisement methods
@@ -138,7 +139,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
     val operators: List[String] = List("gt", "lt")
     val randomOperator: String = operators(Random.nextInt(operators.length))
     val randomClass: String = classes(Random.nextInt(classes.length))
-    val randomValue: Int = (Random.nextInt(10) * 10) + 10
+    val randomValue: Int = (Random.nextInt(20) * 5) + 5
 
     if (mode == PUBLISHER) {
       option match {
@@ -148,6 +149,10 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
           simulationExecution = true
 
         case x if advertisementList.size > 9 && x > 0 && x < 100 =>
+          if (guaranteeType == NONE && !startDelayBaseline) {
+            Thread.sleep(10000)
+            startDelayBaseline = true
+          }
           val randomAdvertisementKey = advertisementList.keys.toList(Random.nextInt(advertisementList.size))
           val activeAdvertisement = advertisementList(randomAdvertisementKey)
           val valueAdvertisement = activeAdvertisement.pAttributes._2
@@ -155,7 +160,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
           val offset = 101 - valueAdvertisement
           val publicationValue = operatorAdvertisement match {
             case "gt" => valueAdvertisement + Random.nextInt(offset)
-            case "lt" => valueAdvertisement - Random.nextInt(offset)
+            case "lt" => valueAdvertisement - Random.nextInt(valueAdvertisement)
           }
           if (guaranteeType!=ACK || !waitingForACK.contains(("Messaging.Advertise", activeAdvertisement.ID))) {
             sendPublication(activeAdvertisement.pClass, activeAdvertisement.pAttributes, publicationValue, guaranteeType)

@@ -68,6 +68,7 @@ class Broker(override val ID: Int, val NB: List[Int]) extends Node(ID) {
     }
 
     processAdvertisement(content)
+
     if (promiseListActive){
       val promises: List[Message] = findPromiseMatch(content.advertisement)
       for (item <- promises) {
@@ -82,12 +83,11 @@ class Broker(override val ID: Int, val NB: List[Int]) extends Node(ID) {
         sendACK(messageType, a, lastHop)
       } else {
         for (hop <- nextHops) {
-          startAckTimer(messageType, a,hop)
+          startAckTimer(messageType, a, hop)
           ACKS += ((messageType, a, hop) -> false)
         }
       }
     }
-
   }
 
   def receiveUnadvertisement(message: Message): Unit = {
@@ -165,9 +165,7 @@ class Broker(override val ID: Int, val NB: List[Int]) extends Node(ID) {
           IsActive += (s -> false)
         }
         if (nextHops.isEmpty) {
-          if (isEB) {
-            IsActive += (s -> true)
-          }
+          IsActive += (s -> true)
           sendACK(messageType, s, lastHop)
         } else {
 
@@ -421,16 +419,22 @@ class Broker(override val ID: Int, val NB: List[Int]) extends Node(ID) {
   }
 
   def startAckTimer(messageType: String, ID: (Int, Int), hop: Int): Unit = {
-    timestamps += ((messageType, ID,hop) -> getCurrentTimestamp)
+    timestamps += ((messageType, ID, hop) -> getCurrentTimestamp)
 
     val t1 = new Thread(new Runnable() {
       override def run(): Unit = {
         while (true) {
           Thread.sleep(200)
-          if (!timestamps.contains(messageType,ID,hop)){  return}
-          if (getCurrentTimestamp - timestamps(messageType, ID, hop) > timeoutLimit) {
-            timestamps -= ((messageType, ID, hop))
-            sendTimeOut(AckResponse(messageType, ID, true))
+          try {
+            if (!timestamps.contains(messageType, ID, hop)) {
+              return
+            }
+            if (getCurrentTimestamp - timestamps(messageType, ID, hop) > timeoutLimit) {
+              timestamps -= ((messageType, ID, hop))
+              sendTimeOut(AckResponse(messageType, ID, true))
+            }
+          } catch {
+            case _ =>
           }
         }
       }
@@ -468,7 +472,7 @@ class Broker(override val ID: Int, val NB: List[Int]) extends Node(ID) {
         println("Retrieving a new message...")
         val message = receiver.getFirstFromQueue()
 
-        writeFileMessages("received",message)
+        writeFileMessages("received", message)
 
         message.content match {
           case _ : Advertise => receiveAdvertisement(message)

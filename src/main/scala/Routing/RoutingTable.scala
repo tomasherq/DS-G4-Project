@@ -38,16 +38,16 @@ class RoutingTable {
       if (routeInfo._2.equals(subscription.pClass))
       {
         var validSubscription = false
-        val valueRoute = routeInfo._3._2
+        val valueAd = routeInfo._3._2
         val valueSub = subscription.pAttributes._2
 
         if (routeInfo._3._1.equals(subscription.pAttributes._1)) {
 
           validSubscription = routeInfo._3._1 match {
-            case "gt" => valueRoute >= valueSub
-            case "lt" => valueRoute <= valueSub
-            case "e" => valueRoute == valueSub
-            case "ne" => valueRoute == valueSub
+            case "gt" => valueAd >= valueSub
+            case "lt" => valueAd <= valueSub
+            case "e" => valueAd == valueSub
+            case "ne" => valueAd == valueSub
           }
         }
 
@@ -68,16 +68,16 @@ class RoutingTable {
       if (routeInfo._2.equals(publication.pClass))
       {
         var validPublication = false
-        val valueRoute = routeInfo._3._2
-        val valueSub = publication.pAttributes._2
+        val valueSub = routeInfo._3._2
+        val valuePub = publication.pAttributes._2
 
         if (routeInfo._3._1.equals(publication.pAttributes._1)) {
 
           validPublication = routeInfo._3._1 match {
-            case "gt" => valueRoute <= valueSub
-            case "lt" => valueRoute >= valueSub
-            case "e" => valueRoute == valueSub
-            case "ne" => valueRoute == valueSub
+            case "gt" => valueSub <= valuePub
+            case "lt" => valueSub >= valuePub
+            case "e" => valueSub == valuePub
+            case "ne" => valueSub == valuePub
           }
         }
 

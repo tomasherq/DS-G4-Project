@@ -40,11 +40,11 @@ def getAnnuncedSubscriptions(sentSubscriptions, sentAdvertisements):
                 if subscription["timestamp"] > advertisement["timestamp"]:
                     if valid and subscription not in validSubscriptions[nodeId]:
                         validSubscriptions[nodeId].append(subscription)
-                        break
+                        #break
                 else:
                     if valid and subscription not in potentialSubscriptions[nodeId]:
                         potentialSubscriptions[nodeId].append(subscription)
-                        break
+                        #break
 
     return validSubscriptions, potentialSubscriptions
 
@@ -58,7 +58,7 @@ def cleanSubscriptions(validSubscriptions, sentUnadvertisements):
 
             if valid and subscription in validSubscriptions[nodeId]:
                 validSubscriptions[nodeId].remove(subscription)
-                break
+                #break
 
     return validSubscriptions
 
