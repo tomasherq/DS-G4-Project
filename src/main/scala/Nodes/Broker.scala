@@ -6,7 +6,6 @@ import Routing.RoutingTable
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
-import scala.util.Random
 
 class Broker(override val ID: Int, val NB: List[Int]) extends Node(ID) {
 
@@ -14,7 +13,6 @@ class Broker(override val ID: Int, val NB: List[Int]) extends Node(ID) {
   private val SRT = new RoutingTable()
   private val PRT = new RoutingTable()
   private val IsActive = mutable.Map[(Int, Int), Boolean]()
-  private val StoredPubs = mutable.Map[(Int, Int), List[Message]]()
   private val promiseList = mutable.Map[(Int, Int), Message]()
   private val timestamps: mutable.Map[(String, (Int, Int),Int),Long] = mutable.Map[(String, (Int, Int),Int),Long]()
 
@@ -69,7 +67,7 @@ class Broker(override val ID: Int, val NB: List[Int]) extends Node(ID) {
 
     processAdvertisement(content)
 
-    if (promiseListActive){
+    if (promiseListActive) {
       val promises: List[Message] = findPromiseMatch(content.advertisement)
       for (item <- promises) {
         println("[PROMISE] Forwarding subscription to " + item.destination)
@@ -155,20 +153,16 @@ class Broker(override val ID: Int, val NB: List[Int]) extends Node(ID) {
     }
 
     val nextHops: List[Int] = nextHopsSet.toList diff List(lastHop)
-    val isEB = (NB diff List(lastHop)).isEmpty
 
     PRT.addRoute(s, lastHop, content.subscription.pClass, content.subscription.pAttributes)
 
     content.guarantee match {
       case ACK =>
-        if (isEB) {
-          IsActive += (s -> false)
-        }
+        IsActive += (s -> false)
         if (nextHops.isEmpty) {
           IsActive += (s -> true)
           sendACK(messageType, s, lastHop)
         } else {
-
           for (hop <- nextHops) {
             println("Forwarding Subscription to " + hop)
             sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp), hop)
@@ -177,23 +171,6 @@ class Broker(override val ID: Int, val NB: List[Int]) extends Node(ID) {
             ACKS += ((messageType, s, hop) -> false)
             startAckTimer(messageType, s,hop)
           }
-        }
-      case TIME => //TODO Check if this works
-        IsActive += (s -> true)
-        if (isEB) {
-          val timestampSubscription = message.timestamp
-          advs.map(ad => {
-            if (StoredPubs.contains(ad._1, ad._2)) {
-              val publications = StoredPubs.asInstanceOf[List[Message]].filter(_.timestamp > timestampSubscription)
-              publications.map(publication => {
-                sendMessage(new Message(getMessageID(), SocketData, message.sender.ID, publication.content, getCurrentTimestamp), message.sender.ID)
-              })
-            }
-          })
-        }
-        for (hop <- nextHops) {
-          println("Forwarding Subscription to " + hop)
-          sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp), hop)
         }
       case NONE =>
         IsActive += (s -> true)
@@ -225,19 +202,13 @@ class Broker(override val ID: Int, val NB: List[Int]) extends Node(ID) {
     }
 
     val nextHops: List[Int] = nextHopsSet.toList diff List(lastHop)
-    val isEB = (NB diff List(lastHop)).isEmpty
 
     PRT.deleteRoute(s)
 
     content.guarantee match {
       case ACK =>
-        if (isEB) {
-          IsActive += (s -> false)
-        }
         if (nextHops.isEmpty) {
-          if (isEB) {
-            IsActive += (s -> false)
-          }
+          IsActive += (s -> false)
           sendACK(messageType, s, lastHop)
         } else {
           for (hop <- nextHops) {
@@ -249,24 +220,6 @@ class Broker(override val ID: Int, val NB: List[Int]) extends Node(ID) {
             startAckTimer(messageType, s,hop)
           }
         }
-      case TIME =>
-        IsActive += (s -> false)
-        for (hop <- nextHops) {
-          println("Forwarding Unsubscription to " + hop)
-          sendMessage(new Message(getMessageID(), SocketData, hop, content, getCurrentTimestamp), hop)
-        }
-        if (isEB) {
-          val timestampSubscription = message.timestamp
-          advs.map(ad => {
-            if(StoredPubs.contains(ad._1, ad._2)){
-              val publications = StoredPubs.asInstanceOf[List[Message]].filter(_.timestamp > timestampSubscription)
-              publications.map(publication => {
-                sendMessage(new Message(getMessageID(), SocketData, message.sender.ID, publication.content, getCurrentTimestamp), message.sender.ID)
-              })
-            }
-          })
-        }
-
       case NONE =>
         IsActive += (s -> false)
         for (hop <- nextHops) {
@@ -289,16 +242,6 @@ class Broker(override val ID: Int, val NB: List[Int]) extends Node(ID) {
     val p: (Int, Int) = content.publication.ID
 
     lastHops += ((messageType, p) -> lastHop)
-    val isEB = (NB diff List(lastHop)).isEmpty
-
-    if (isEB) {
-      if (StoredPubs.contains(content.publication.ID)) {
-        val storedPubList: List[Message] = message :: StoredPubs(content.publication.ID)
-        StoredPubs += (content.publication.ID -> storedPubList)
-      } else {
-        StoredPubs += (content.publication.ID -> List(message))
-      }
-    }
 
     val subs: List[(Int, Int)] = PRT.findMatch(content.publication)
 
@@ -456,6 +399,7 @@ class Broker(override val ID: Int, val NB: List[Int]) extends Node(ID) {
         advertisementList -= ACK.ID
       case _ =>
     }
+
     sendMessage(new Message(getMessageID(), SocketData, destinationID, ACK, getCurrentTimestamp), destinationID)
   }
 
@@ -464,8 +408,8 @@ class Broker(override val ID: Int, val NB: List[Int]) extends Node(ID) {
     super.startReceiver()
 
     while (true) {
-      val rand = new Random
-      val randomNetworkDelay = 10 + rand.nextInt(20)
+
+      val randomNetworkDelay = 10 + randomGenerator.nextInt(40)
       Thread.sleep(randomNetworkDelay)
 
       while (!receiver.isQueueEmpty) {
