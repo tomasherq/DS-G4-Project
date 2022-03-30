@@ -89,7 +89,8 @@ def checkPublications(expectedPublications, receivedPublications, retransPublica
             subscriberStats[nodeId]['missingPubs'] = missingCounter
             subscriberStats[nodeId]['receivedPubs'] = receivedCounter
             subscriberStats[nodeId]['missRate'] = round(missingCounter/(receivedCounter+missingCounter), 2)
-            if receivedCounter == 0 or succesRetrans:
+
+            if receivedCounter == 0:
                 receivedCounter = 1
 
             subscriberStats[nodeId]["totalRetrans"] = succesRetrans+failRetrans
