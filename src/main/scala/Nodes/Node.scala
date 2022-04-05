@@ -98,7 +98,8 @@ abstract class Node(val ID: Int) {
   }
 
   def execute(): Unit = {
-    randomGenerator.setSeed(ID)
+    val rndSeed=4 // To create the runs, the 2 is the number of publishers
+    randomGenerator.setSeed(ID+2*rndSeed)
     initializeCounters()
   }
 }

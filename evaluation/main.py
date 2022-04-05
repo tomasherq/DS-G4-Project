@@ -3,8 +3,7 @@ from functions.getSizeOfFiles import *
 from functions.checkAdvertisements import *
 from functions.checkSubscriptions import *
 from functions.checkPublications import *
-
-RUNS_DIRECTORY = "../runs/run7"
+import statistics
 
 # Get retransmissions and timeouts from ACKs.
 
@@ -14,140 +13,175 @@ def getSumOfField(dictionary, field):
 
     for nodeId in dictionary:
         if field in dictionary[nodeId]:
-            result += dictionary[nodeId][field]
-    if isinstance(result, float):
-        result = round(result, 2)
+            if dictionary[nodeId][field] > 0:
+                result += dictionary[nodeId][field]
+
+    result = round(result, 2)
 
     return result
 
 
-# I think that the logic is hard to understand
-publisherNodes = ["13", "14"]
+def getStandardDeviation(dictionary, field):
 
-subscriberNodes = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
+    results = list()
 
-# Measure the traffic per node
-trafficGenerated = {}
-trafficGenerated["totalSent"] = 0
+    for nodeId in dictionary:
+        if field in dictionary[nodeId]:
+            if isinstance(dictionary[nodeId][field], list):
+                results += dictionary[nodeId][field]
+            else:
+                results.append(dictionary[nodeId][field])
 
-# Easiest one cause we do not need to follow paths!
-sentAdvertisements = []
-sentUnadvertisements = []
-receivedAdvertisements = {}
-receivedUnadvertisements = {}
-
-# We have to take into account who wants which publication and if it reaches the destinations
-sentPublications = []
-receivedPublications = {}
-retransPublications = []
-
-# Take into account only if it reached the destination!
-sentSubscriptions = {}
-sentUnsubscriptions = {}
-receivedSubscriptions = {}
-receivedUnsubscriptions = {}
-
-# Do we really care about the received ACKs? The important thing is the content
-# receivedAcks = {}
-# sentAcks = {}
-
-for nodeId in os.listdir(RUNS_DIRECTORY):
-
-    if "root" in nodeId:
-        continue
-    nodeDirectory = RUNS_DIRECTORY+'/'+nodeId
-
-    if nodeId in publisherNodes:
-
-        sentAdvertisements += readSentAdvertisements(nodeDirectory)
-        receivedSubscriptions[nodeId] = readReceivedSubscriptions(nodeDirectory)
-        receivedUnsubscriptions[nodeId] = readReceivedUnsubscriptions(nodeDirectory)
-        sentPublications += readSentPublications(nodeDirectory)
-        sentUnadvertisements += readSentUnadvertisements(nodeDirectory)
-        retransPublications += readTimeoutACK(nodeDirectory)
-
-    elif nodeId in subscriberNodes:
-
-        receivedPublications[nodeId] = readReceivedPublications(nodeDirectory)
-        sentSubscriptions[nodeId] = readSentSubscriptions(nodeDirectory)
-        sentUnsubscriptions[nodeId] = readSentUnsubscriptions(nodeDirectory)
-
-    else:
-        receivedAdvertisements[nodeId] = readReceivedAdvertisements(nodeDirectory)
-        receivedUnadvertisements[nodeId] = readReceivedUnadvertisements(nodeDirectory)
-
-    trafficGenerated[nodeId] = getTrafficNode(nodeDirectory)
-    trafficGenerated["totalSent"] += trafficGenerated[nodeId]['sent']
-    for key in trafficGenerated[nodeId]:
-        trafficGenerated[nodeId][key] = format_bytes(trafficGenerated[nodeId][key])
+    return round(statistics.stdev(results), 2)
 
 
-# Advertisements
-missingAdvertisments = checkAdvertisements(receivedAdvertisements, sentAdvertisements)
-missingUnadvertisments = checkAdvertisements(receivedUnadvertisements, sentUnadvertisements)
+def getMode(dictionary, field):
+
+    results = list()
+
+    for nodeId in dictionary:
+        if field in dictionary[nodeId]:
+            if isinstance(dictionary[nodeId][field], list):
+                results += dictionary[nodeId][field]
+            else:
+                results.append(dictionary[nodeId][field])
+
+    return round(statistics.mode(results), 2)
 
 
-# Subscriptions
-validSubscriptions, potentialSubscriptions = getValidSubscriptions(
-    sentSubscriptions, sentAdvertisements, sentUnadvertisements)
+def getRunResult(RUNS_DIRECTORY):
+    # I think that the logic is hard to understand
+    publisherNodes = ["13", "14"]
 
+    subscriberNodes = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
 
-unsubscriptionsSummary = getSummaryUnsubscriptions(sentUnsubscriptions)
+    # Measure the traffic per node
+    trafficGenerated = {}
+    trafficGenerated["totalSent"] = 0
 
-# Publications
-expectedPublications = getExpectedPublications(sentPublications, validSubscriptions, unsubscriptionsSummary)
-potentialExpectedPublications = getExpectedPublications(
-    sentPublications, potentialSubscriptions, unsubscriptionsSummary)
+    # Easiest one cause we do not need to follow paths!
+    sentAdvertisements = []
+    sentUnadvertisements = []
+    receivedAdvertisements = {}
+    receivedUnadvertisements = {}
 
+    # We have to take into account who wants which publication and if it reaches the destinations
+    sentPublications = []
+    receivedPublications = {}
+    retransPublications = []
 
-subscribersEmpty = {}
-for node in subscriberNodes:
-    subscribersEmpty[node] = {}
+    # Take into account only if it reached the destination!
+    sentSubscriptions = {}
+    sentUnsubscriptions = {}
+    receivedSubscriptions = {}
+    receivedUnsubscriptions = {}
 
-subscriberStats = checkPublications(expectedPublications, receivedPublications, retransPublications, subscribersEmpty)
-potentialPublications = checkPotentialPublications(expectedPublications, potentialExpectedPublications)
+    # Do we really care about the received ACKs? The important thing is the content
+    # receivedAcks = {}
+    # sentAcks = {}
 
+    for nodeId in os.listdir(RUNS_DIRECTORY):
 
-# Creation of the summary
-numberSubs = len(subscriberNodes)
+        if "root" in nodeId:
+            continue
+        nodeDirectory = RUNS_DIRECTORY+'/'+nodeId
 
-summary = {}
-summary['n_nodes'] = len(os.listdir(RUNS_DIRECTORY))
-summary['n_publishers'] = len(publisherNodes)
-summary['n_subscribers'] = numberSubs
-summary['n_brokers'] = summary['n_nodes'] - len(publisherNodes) - len(subscriberNodes)
-summary['stats'] = {}
-summary['stats']['avg_wait_time'] = getSumOfField(subscriberStats, "waitTime")/numberSubs
-summary['stats']['traffic_sent'] = format_bytes(trafficGenerated["totalSent"])
-summary['stats']['traffic_sent_bytes'] = trafficGenerated["totalSent"]
-summary['stats']['avg_traffic_sent'] = format_bytes(trafficGenerated["totalSent"]/summary['n_nodes'])
-summary['stats']['recv_pubs'] = getSumOfField(subscriberStats, "receivedPubs")
-summary['stats']['avg_recv_pubs'] = getSumOfField(subscriberStats, "receivedPubs")/numberSubs
-summary['stats']['miss_pubs'] = getSumOfField(subscriberStats, "missingPubs")
-summary['stats']['avg_miss_pubs'] = getSumOfField(subscriberStats, "missingPubs")
-summary['stats']['avg_miss_rate'] = getSumOfField(subscriberStats, "missRate")/numberSubs
-summary['stats']['avg_pot_pubs_miss'] = getSumOfField(potentialPublications, "potentialPubs")/numberSubs
-summary['stats']['avg_pot_pubs_miss_rate'] = getSumOfField(potentialPublications, "potentialPubsRate")/numberSubs
-summary['stats']['avg_rtr_pubs'] = getSumOfField(subscriberStats, "totalRetrans")/numberSubs
-summary['stats']['avg_success_rtr_pubs'] = getSumOfField(subscriberStats, "succesRetrans")/numberSubs
+        if nodeId in publisherNodes:
 
-avg_recv_pubs = summary['stats']['avg_recv_pubs']
-if avg_recv_pubs < 1:
-    avg_recv_pubs = 1
+            sentAdvertisements += readSentAdvertisements(nodeDirectory)
+            receivedSubscriptions[nodeId] = readReceivedSubscriptions(nodeDirectory)
+            receivedUnsubscriptions[nodeId] = readReceivedUnsubscriptions(nodeDirectory)
+            sentPublications += readSentPublications(nodeDirectory)
+            sentUnadvertisements += readSentUnadvertisements(nodeDirectory)
+            retransPublications += readTimeoutACK(nodeDirectory)
 
-summary['stats']['avg_rtr_pubs_to_normal'] = round(
-    summary['stats']['avg_success_rtr_pubs']/avg_recv_pubs, 2)
+        elif nodeId in subscriberNodes:
 
-runName = RUNS_DIRECTORY.split("/")[-1]
+            receivedPublications[nodeId] = readReceivedPublications(nodeDirectory)
+            sentSubscriptions[nodeId] = readSentSubscriptions(nodeDirectory)
+            sentUnsubscriptions[nodeId] = readSentUnsubscriptions(nodeDirectory)
 
-with open(f'/Users/remyduijsens/Documents/Education/Master Computer Science/Q3/Distributed Systems/Project/DS-G4-Project/evaluation/results/{runName}.json', 'w') as file_write:
-    file_write.write(json.dumps(summary, indent=4))
+        else:
+            receivedAdvertisements[nodeId] = readReceivedAdvertisements(nodeDirectory)
+            receivedUnadvertisements[nodeId] = readReceivedUnadvertisements(nodeDirectory)
 
-with open(f'/Users/remyduijsens/Documents/Education/Master Computer Science/Q3/Distributed Systems/Project/DS-G4-Project/evaluation/results/{runName}_per_node.json', 'w') as file_write:
-    file_write.write(json.dumps(subscriberStats, indent=4))
+        trafficGenerated[nodeId] = getTrafficNode(nodeDirectory)
+        trafficGenerated["totalSent"] += trafficGenerated[nodeId]['sent']
+        for key in trafficGenerated[nodeId]:
+            trafficGenerated[nodeId][key] = format_bytes(trafficGenerated[nodeId][key])
 
-# Interesting elements:
-# totalTraficSent
-# missingPublications
-# potential publications
-# averageWaiting time and average waits
+    # Advertisements
+    missingAdvertisments = checkAdvertisements(receivedAdvertisements, sentAdvertisements)
+    missingUnadvertisments = checkAdvertisements(receivedUnadvertisements, sentUnadvertisements)
+
+    # Subscriptions
+    validSubscriptions, potentialSubscriptions = getValidSubscriptions(
+        sentSubscriptions, sentAdvertisements, sentUnadvertisements)
+
+    unsubscriptionsSummary = getSummaryUnsubscriptions(sentUnsubscriptions)
+
+    # Publications
+    expectedPublications = getExpectedPublications(sentPublications, validSubscriptions, unsubscriptionsSummary)
+    potentialExpectedPublications = getExpectedPublications(
+        sentPublications, potentialSubscriptions, unsubscriptionsSummary)
+
+    subscribersEmpty = {}
+    for node in subscriberNodes:
+        subscribersEmpty[node] = {}
+
+    subscriberStats = checkPublications(expectedPublications, receivedPublications,
+                                        retransPublications, subscribersEmpty)
+    potentialPublications = checkPotentialPublications(expectedPublications, potentialExpectedPublications)
+
+    # Creation of the summary
+    numberSubs = len(subscriberNodes)
+
+    summary = {}
+    summary['n_nodes'] = len(os.listdir(RUNS_DIRECTORY))
+    summary['n_publishers'] = len(publisherNodes)
+    summary['n_subscribers'] = numberSubs
+    summary['n_brokers'] = summary['n_nodes'] - len(publisherNodes) - len(subscriberNodes)
+
+    summary['avg_wait_time'] = round(getSumOfField(subscriberStats, "waitTime")/numberSubs, 2)
+    summary["std_wait_time"] = getStandardDeviation(subscriberStats, "waitTimes")
+
+    summary['traffic_sent'] = format_bytes(trafficGenerated["totalSent"])
+    summary['traffic_sent_bytes'] = trafficGenerated["totalSent"]
+    summary['avg_traffic_sent'] = format_bytes(trafficGenerated["totalSent"]/summary['n_nodes'])
+
+    summary['recv_pubs'] = getSumOfField(subscriberStats, "receivedPubs")
+    summary['avg_recv_pubs'] = round(getSumOfField(subscriberStats, "receivedPubs")/numberSubs, 2)
+    summary["std_recv_pubs"] = getStandardDeviation(subscriberStats, "receivedPubs")
+
+    summary['miss_pubs'] = getSumOfField(subscriberStats, "missingPubs")
+    summary['avg_miss_pubs'] = round(getSumOfField(subscriberStats, "missingPubs")/numberSubs, 2)
+    summary["std_miss_pubs"] = getStandardDeviation(subscriberStats, "missingPubs")
+    summary['avg_miss_rate'] = round(getSumOfField(subscriberStats, "missRate")/numberSubs, 2)
+
+    # summary['avg_pot_pubs_miss'] = getSumOfField(potentialPublications, "potentialPubs")/numberSubs
+    # summary['avg_pot_pubs_miss_rate'] = getSumOfField(potentialPublications, "potentialPubsRate")/numberSubs
+    # summary['avg_rtr_pubs'] = getSumOfField(subscriberStats, "totalRetrans")/numberSubs
+    # summary['avg_success_rtr_pubs'] = getSumOfField(subscriberStats, "succesRetrans")/numberSubs
+
+    # avg_recv_pubs = summary['avg_recv_pubs']
+    # if avg_recv_pubs < 1:
+    #     avg_recv_pubs = 1
+
+    # summary['avg_rtr_pubs_to_normal'] = round(
+    #     summary['avg_success_rtr_pubs']/avg_recv_pubs, 2)
+
+    runName = RUNS_DIRECTORY.split("/")[-2].split("_")[-1]+"_"+RUNS_DIRECTORY.split("/")[-1]
+
+    with open(f'results/{runName}.json', 'w') as file_write:
+        file_write.write(json.dumps(summary, indent=4))
+
+    with open(f'results/{runName}_per_node.json', 'w') as file_write:
+        file_write.write(json.dumps(subscriberStats, indent=4))
+
+    return summary
+
+    # Interesting elements:
+    # totalTraficSent
+    # missingPublications
+    # potential publications
+    # averageWaiting time and average waits

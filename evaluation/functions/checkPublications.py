@@ -45,13 +45,13 @@ def getExpectedPublications(sentPublications, validSubscriptions, unsubscription
                             if valid and publication not in expectedPublications[nodeId]:
                                 expectedPublications[nodeId].append(publication)
                                 copiedPublications.remove(publication)
-                                #break
+                                # break
     return expectedPublications
 
 
 def checkPublications(expectedPublications, receivedPublications, retransPublications, subscriberStats):
 
-    #print(receivedPublications)
+    # print(receivedPublications)
 
     def getTimestampsPublications(publications):
 
@@ -68,6 +68,7 @@ def checkPublications(expectedPublications, receivedPublications, retransPublica
 
             expectedTimestamps = getTimestampsPublications(expectedPublications[nodeId])
             receivedTimestamps = getTimestampsPublications(receivedPublications[nodeId])
+            subscriberStats[nodeId]['waitTimes'] = list()
 
             averageWait = 0
             receivedCounter = 0
@@ -81,7 +82,7 @@ def checkPublications(expectedPublications, receivedPublications, retransPublica
                     receivedCounter += 1
                     if pubId in retransPublications:
                         succesRetrans += 1
-
+                    subscriberStats[nodeId]['waitTimes'].append(waitingTime)
                 else:
                     missingCounter += 1
                     if pubId in retransPublications:
