@@ -1,10 +1,9 @@
 from functions.readingFunctions import *
 from functions.getSizeOfFiles import *
-from functions.checkAdvertisements import *
 from functions.checkSubscriptions import *
 from functions.checkPublications import *
 import statistics
-
+import json
 # Get retransmissions and timeouts from ACKs.
 
 
@@ -35,20 +34,6 @@ def getStandardDeviation(dictionary, field):
     return round(statistics.stdev(results), 2)
 
 
-def getMode(dictionary, field):
-
-    results = list()
-
-    for nodeId in dictionary:
-        if field in dictionary[nodeId]:
-            if isinstance(dictionary[nodeId][field], list):
-                results += dictionary[nodeId][field]
-            else:
-                results.append(dictionary[nodeId][field])
-
-    return round(statistics.mode(results), 2)
-
-
 def getRunResult(RUNS_DIRECTORY):
     # I think that the logic is hard to understand
     publisherNodes = ["13", "14"]
@@ -75,10 +60,6 @@ def getRunResult(RUNS_DIRECTORY):
     sentUnsubscriptions = {}
     receivedSubscriptions = {}
     receivedUnsubscriptions = {}
-
-    # Do we really care about the received ACKs? The important thing is the content
-    # receivedAcks = {}
-    # sentAcks = {}
 
     for nodeId in os.listdir(RUNS_DIRECTORY):
 
@@ -110,10 +91,6 @@ def getRunResult(RUNS_DIRECTORY):
         for key in trafficGenerated[nodeId]:
             trafficGenerated[nodeId][key] = format_bytes(trafficGenerated[nodeId][key])
 
-    # Advertisements
-    missingAdvertisments = checkAdvertisements(receivedAdvertisements, sentAdvertisements)
-    missingUnadvertisments = checkAdvertisements(receivedUnadvertisements, sentUnadvertisements)
-
     # Subscriptions
     validSubscriptions, potentialSubscriptions = getValidSubscriptions(
         sentSubscriptions, sentAdvertisements, sentUnadvertisements)
@@ -129,6 +106,7 @@ def getRunResult(RUNS_DIRECTORY):
     for node in subscriberNodes:
         subscribersEmpty[node] = {}
 
+    # Stadistics for the subscribers of the system
     subscriberStats = checkPublications(expectedPublications, receivedPublications,
                                         retransPublications, subscribersEmpty)
     potentialPublications = checkPotentialPublications(expectedPublications, potentialExpectedPublications)
@@ -158,10 +136,10 @@ def getRunResult(RUNS_DIRECTORY):
     summary["std_miss_pubs"] = getStandardDeviation(subscriberStats, "missingPubs")
     summary['avg_miss_rate'] = round(getSumOfField(subscriberStats, "missRate")/numberSubs, 2)
 
+    # This has to be uncommented for potential publications
+
     # summary['avg_pot_pubs_miss'] = getSumOfField(potentialPublications, "potentialPubs")/numberSubs
     # summary['avg_pot_pubs_miss_rate'] = getSumOfField(potentialPublications, "potentialPubsRate")/numberSubs
-    # summary['avg_rtr_pubs'] = getSumOfField(subscriberStats, "totalRetrans")/numberSubs
-    # summary['avg_success_rtr_pubs'] = getSumOfField(subscriberStats, "succesRetrans")/numberSubs
 
     # avg_recv_pubs = summary['avg_recv_pubs']
     # if avg_recv_pubs < 1:
@@ -179,9 +157,3 @@ def getRunResult(RUNS_DIRECTORY):
         file_write.write(json.dumps(subscriberStats, indent=4))
 
     return summary
-
-    # Interesting elements:
-    # totalTraficSent
-    # missingPublications
-    # potential publications
-    # averageWaiting time and average waits

@@ -1,8 +1,11 @@
 import os
 import ndjson
 from collections import defaultdict
-import json
-from functions.checkAdvertisements import getIdMessage
+
+
+def getIdMessage(idDict):
+    ids = list(idDict.values())
+    return f'{ids[0]}_{ids[1]}'
 
 
 def readByMessageType(directory, messageType):
@@ -77,7 +80,6 @@ def readReceivedUnsubscriptions(nodeDirectory):
 
 
 def readTimeoutACK(directory):
-    acks = defaultdict(list)
     directory = f'{directory}/received'
     retransIds = list()
     if os.path.exists(directory):

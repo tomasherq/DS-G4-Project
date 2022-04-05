@@ -18,6 +18,10 @@
         "avg_traffic_sent": "1.6 MB"
     },
     "std": {
+        "n_nodes": 0.0,
+        "n_publishers": 0.0,
+        "n_subscribers": 0.0,
+        "n_brokers": 0.0,
         "avg_wait_time": 12.32,
         "traffic_sent_bytes": 2810520.97,
         "recv_pubs": 1214.11,

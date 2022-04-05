@@ -1,6 +1,6 @@
 import os
 from functions.getSizeOfFiles import format_bytes
-from main import getRunResult, getSumOfField, getMode, getStandardDeviation
+from main import getRunResult, getSumOfField, getStandardDeviation
 import json
 
 

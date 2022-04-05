@@ -1,7 +1,7 @@
 
 
 from collections import defaultdict
-from functions.checkAdvertisements import getIdMessage
+from functions.readingFunctions import getIdMessage
 
 
 def getExpectedPublications(sentPublications, validSubscriptions, unsubscriptionsSummary):
