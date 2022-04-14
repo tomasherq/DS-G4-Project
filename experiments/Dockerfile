@@ -19,15 +19,10 @@ RUN mkdir /root/git_repo
 WORKDIR /root/git_repo
 RUN git clone https://github.com/tomasherq/DS-G4-Project.git
 
-# Uncomment to use local code
-#COPY . ./project
-#COPY . ./src
-#COPY . ./pom.xml
-
 # Compile code with maven
 FROM maven:3.8.4-openjdk-17-slim AS build
-COPY src ./src
-COPY pom.xml .
+COPY ../src ./src
+COPY ../pom.xml .
 RUN mvn -f ./pom.xml clean compile package
 
 # Copy compiled jar file to run folder

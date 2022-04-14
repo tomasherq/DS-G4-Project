@@ -6,7 +6,7 @@ services:
   
   subscriber1:
     build: .
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 1 --BID 16 --mode subscriber
+    command: java -jar ./target/PSDG-V1.0-jar-with-dependencies.jar --type client --ID 1 --BID 16 --mode subscriber
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
@@ -15,7 +15,7 @@ services:
 
   subscriber2:
     build: .
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 2 --BID 16 --mode subscriber
+    command: java -jar ./target/PSDG-V1.0-jar-with-dependencies.jar --type client --ID 2 --BID 16 --mode subscriber
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
@@ -24,7 +24,7 @@ services:
 
   subscriber3:
     build: .
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 3 --BID 16 --mode subscriber
+    command: java -jar ./target/PSDG-V1.0-jar-with-dependencies.jar --type client --ID 3 --BID 16 --mode subscriber
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
@@ -33,7 +33,7 @@ services:
 
   subscriber4:
     build: .
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 4 --BID 17 --mode subscriber
+    command: java -jar ./target/PSDG-V1.0-jar-with-dependencies.jar --type client --ID 4 --BID 17 --mode subscriber
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
@@ -42,7 +42,7 @@ services:
 
   subscriber5:
     build: .
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 5 --BID 17 --mode subscriber
+    command: java -jar ./target/PSDG-V1.0-jar-with-dependencies.jar --type client --ID 5 --BID 17 --mode subscriber
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
@@ -51,7 +51,7 @@ services:
 
   subscriber6:
     build: .
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 6 --BID 17 --mode subscriber
+    command: java -jar ./target/PSDG-V1.0-jar-with-dependencies.jar --type client --ID 6 --BID 17 --mode subscriber
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
@@ -60,7 +60,7 @@ services:
 
   subscriber7:
     build: .
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 7 --BID 18 --mode subscriber
+    command: java -jar ./target/PSDG-V1.0-jar-with-dependencies.jar --type client --ID 7 --BID 18 --mode subscriber
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
@@ -69,7 +69,7 @@ services:
 
   subscriber8:
     build: .
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 8 --BID 18 --mode subscriber
+    command: java -jar ./target/PSDG-V1.0-jar-with-dependencies.jar --type client --ID 8 --BID 18 --mode subscriber
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
@@ -78,7 +78,7 @@ services:
 
   subscriber9:
     build: .
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 9 --BID 18 --mode subscriber
+    command: java -jar ./target/PSDG-V1.0-jar-with-dependencies.jar --type client --ID 9 --BID 18 --mode subscriber
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
@@ -87,7 +87,7 @@ services:
 
   subscriber10:
     build: .
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 10 --BID 19 --mode subscriber
+    command: java -jar ./target/PSDG-V1.0-jar-with-dependencies.jar --type client --ID 10 --BID 19 --mode subscriber
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
@@ -96,7 +96,7 @@ services:
 
   subscriber11:
     build: .
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 11 --BID 19 --mode subscriber
+    command: java -jar ./target/PSDG-V1.0-jar-with-dependencies.jar --type client --ID 11 --BID 19 --mode subscriber
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
@@ -105,7 +105,7 @@ services:
 
   subscriber12:
     build: .
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 12 --BID 19 --mode subscriber
+    command: java -jar ./target/PSDG-V1.0-jar-with-dependencies.jar --type client --ID 12 --BID 19 --mode subscriber
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
@@ -114,7 +114,7 @@ services:
 
   publisher13:
     build: .
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 13 --BID 20 --mode publisher
+    command: java -jar ./target/PSDG-V1.0-jar-with-dependencies.jar --type client --ID 13 --BID 20 --mode publisher
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
@@ -123,7 +123,7 @@ services:
 
   publisher14:
     build: .
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type client --ID 14 --BID 15 --mode publisher
+    command: java -jar ./target/PSDG-V1.0-jar-with-dependencies.jar --type client --ID 14 --BID 15 --mode publisher
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
@@ -132,7 +132,7 @@ services:
 
   edgebroker15:
     build: .
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 15 --NB 20
+    command: java -jar ./target/PSDG-V1.0-jar-with-dependencies.jar --type broker --ID 15 --NB 20
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
@@ -141,7 +141,7 @@ services:
 
   edgebroker16:
     build: .
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 16 --NB 23
+    command: java -jar ./target/PSDG-V1.0-jar-with-dependencies.jar --type broker --ID 16 --NB 23
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
@@ -150,7 +150,7 @@ services:
 
   edgebroker17:
     build: .
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 17 --NB 24
+    command: java -jar ./target/PSDG-V1.0-jar-with-dependencies.jar --type broker --ID 17 --NB 24
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
@@ -159,7 +159,7 @@ services:
 
   edgebroker18:
     build: .
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 18 --NB 23
+    command: java -jar ./target/PSDG-V1.0-jar-with-dependencies.jar --type broker --ID 18 --NB 23
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
@@ -168,7 +168,7 @@ services:
 
   edgebroker19:
     build: .
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 19 --NB 21
+    command: java -jar ./target/PSDG-V1.0-jar-with-dependencies.jar --type broker --ID 19 --NB 21
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
@@ -177,7 +177,7 @@ services:
 
   edgebroker20:
     build: .
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 20 --NB 21,15
+    command: java -jar ./target/PSDG-V1.0-jar-with-dependencies.jar --type broker --ID 20 --NB 21,15
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
@@ -186,7 +186,7 @@ services:
 
   broker21:
     build: .
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 21 --NB 20,19,22
+    command: java -jar ./target/PSDG-V1.0-jar-with-dependencies.jar --type broker --ID 21 --NB 20,19,22
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
@@ -195,7 +195,7 @@ services:
 
   broker22:
     build: .
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 22 --NB 21,23
+    command: java -jar ./target/PSDG-V1.0-jar-with-dependencies.jar --type broker --ID 22 --NB 21,23
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
@@ -204,7 +204,7 @@ services:
 
   broker23:
     build: .
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 23 --NB 22,16,18,24
+    command: java -jar ./target/PSDG-V1.0-jar-with-dependencies.jar --type broker --ID 23 --NB 22,16,18,24
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
@@ -213,7 +213,7 @@ services:
 
   broker24:
     build: .
-    command: java -jar ./target/DS-Project-V1.0.0-jar-with-dependencies.jar --type broker --ID 24 --NB 23,17
+    command: java -jar ./target/PSDG-V1.0-jar-with-dependencies.jar --type broker --ID 24 --NB 23,17
     volumes:
       - ${DIRECTORY_SAVE}:/tmp
     networks:
