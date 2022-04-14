@@ -1,5 +1,8 @@
 package Messaging
 
+/**
+ * All guarantee types are defined internally as a tuple of (ID, Type)
+ */
 object GuaranteeType extends Enumeration {
   type GuaranteeType = Value
 

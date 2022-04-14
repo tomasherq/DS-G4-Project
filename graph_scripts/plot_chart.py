@@ -1,4 +1,4 @@
-# a bar plot with errorbars
+# A bar plot with errorbars
 import numpy as np
 import matplotlib.pyplot as plt
 import json
@@ -8,19 +8,18 @@ import json
 with open("ack.json", "r") as file_read:
     results_ack = json.load(file_read)
 
+
 with open("none.json", "r") as file_read:
     results_none = json.load(file_read)
 
-# Labels to be used in the Y axis
 
+# Labels to be used in the Y axis
 labelsYaxis = ['Avg. wait time (ms)', 'Traffic generated (MB)',
                'Successful publications', 'Missed publications']
 
+
 # Get values of fields
-
-
 def getValuesField(dataset):
-
     fields_interest = ["avg_wait_time", "traffic_sent_bytes", "recv_pubs", "miss_pubs"]
     values = []
     for field in fields_interest:
@@ -34,7 +33,6 @@ plt.rc('xtick', labelsize=12)  # fontsize of the x tick labels
 
 
 def plot_values(completeInfo, counter_plots=1):
-
     plt.subplot(2, 2, counter_plots)
     widthBar = 0.1
     # creating the bar plot
@@ -68,11 +66,14 @@ def plot_values(completeInfo, counter_plots=1):
 ack_means = getValuesField(results_ack["avg"])
 ack_std = getValuesField(results_ack["std"])
 
+
 none_means = getValuesField(results_none["avg"])
 none_std = getValuesField(results_none["std"])
 
+
 # Create the four plots
 counterPlot = 1
+
 for i in range(4):
     completeInfo = {}
     completeInfo["means"] = [none_means[i], ack_means[i]]
@@ -80,6 +81,5 @@ for i in range(4):
     completeInfo["ylabel"] = labelsYaxis[i]
     completeInfo["xlabel"] = ""
     counterPlot = plot_values(completeInfo, counterPlot)
-
 
 plt.show()

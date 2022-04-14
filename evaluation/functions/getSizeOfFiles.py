@@ -1,6 +1,5 @@
 import os
 
-
 def format_bytes(size):
     """Converts a number into bytes, distinguishing its magnitude.
 
@@ -17,6 +16,7 @@ def format_bytes(size):
     while size > power:
         size /= power
         n += 1
+
     return str(round(size, 2))+" " + power_labels[n]
 
 
@@ -31,4 +31,5 @@ def getTrafficNode(nodeDirectory):
             f'{nodeDirectory}/received') if os.path.isfile(f'{nodeDirectory}/received/{f}'))
 
     traffic["total"] = traffic["sent"]+traffic["received"]
+
     return traffic

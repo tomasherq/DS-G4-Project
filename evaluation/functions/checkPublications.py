@@ -1,21 +1,13 @@
-
-
 from collections import defaultdict
 from functions.readingFunctions import getIdMessage
 
-
 def getExpectedPublications(sentPublications, validSubscriptions, unsubscriptionsSummary):
-
     expectedPublications = defaultdict(list)
-
     for nodeId, subscriptions in validSubscriptions.items():
-
         copiedPublications = sentPublications.copy()
 
         for subscription in subscriptions:
-
             for publication in copiedPublications:
-
                 subscriptionID = getIdMessage(subscription["ID"])
 
                 if subscriptionID in unsubscriptionsSummary[nodeId]:
@@ -24,7 +16,6 @@ def getExpectedPublications(sentPublications, validSubscriptions, unsubscription
                         continue
 
                 if subscription["timestamp"] < publication["timestamp"]:
-
                     if subscription["pClass"] == publication["pClass"]:
                         operation = publication["pAttributes"]["_1"]
                         if operation == subscription["pAttributes"]["_1"] or operation == "ne":
@@ -51,21 +42,16 @@ def getExpectedPublications(sentPublications, validSubscriptions, unsubscription
 
 def checkPublications(expectedPublications, receivedPublications, retransPublications, subscriberStats):
 
-    # print(receivedPublications)
-
     def getTimestampsPublications(publications):
-
         timestampsPubs = {}
         for publication in publications:
             pubId = getIdMessage(publication['ID'])
             if pubId not in timestampsPubs:
                 timestampsPubs[pubId] = publication['timestamp']
-
         return timestampsPubs
 
     for nodeId in expectedPublications:
         if nodeId in receivedPublications:
-
             expectedTimestamps = getTimestampsPublications(expectedPublications[nodeId])
             receivedTimestamps = getTimestampsPublications(receivedPublications[nodeId])
             subscriberStats[nodeId]['waitTimes'] = list()
@@ -107,16 +93,15 @@ def checkPublications(expectedPublications, receivedPublications, retransPublica
 
 
 def checkPotentialPublications(expectedPublications, potentialExpectedPublications):
-
     potentialPublications = defaultdict(lambda: {})
 
     def getIdsPublications(publications):
-
         ids = []
         for publication in publications:
             if publication['ID'] not in ids:
                 ids.append(getIdMessage(publication['ID']))
         return ids
+
     for nodeId in expectedPublications:
         if nodeId in potentialExpectedPublications:
 

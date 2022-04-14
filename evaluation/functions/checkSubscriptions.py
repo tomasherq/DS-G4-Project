@@ -1,11 +1,9 @@
 from collections import defaultdict
 from functions.readingFunctions import getIdMessage
 
-
 def checksubscriptionValidity(subscription, sentAdvertisements):
     valid = False
     for advertisement in sentAdvertisements:
-
         if subscription["pClass"] == advertisement["pClass"]:
             operation = advertisement["pAttributes"]["_1"]
             if operation == subscription["pAttributes"]["_1"] or operation == "ne":
@@ -50,7 +48,6 @@ def getAnnuncedSubscriptions(sentSubscriptions, sentAdvertisements):
 
 
 def cleanSubscriptions(validSubscriptions, sentUnadvertisements):
-
     for nodeId in validSubscriptions:
         subscriptionsOfNode = validSubscriptions[nodeId]
         for subscription in subscriptionsOfNode:
@@ -64,9 +61,7 @@ def cleanSubscriptions(validSubscriptions, sentUnadvertisements):
 
 
 def getValidSubscriptions(sentSubscriptions, sentAdvertisements, sentUnadvertisements):
-
     validSubscriptions, potentialSubscriptions = getAnnuncedSubscriptions(sentSubscriptions, sentAdvertisements)
-
     validSubsClean = cleanSubscriptions(validSubscriptions, sentUnadvertisements)
     potentialSubsClean = cleanSubscriptions(potentialSubscriptions, sentUnadvertisements)
 

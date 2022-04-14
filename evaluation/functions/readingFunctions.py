@@ -2,7 +2,6 @@ import os
 import ndjson
 from collections import defaultdict
 
-
 def getIdMessage(idDict):
     ids = list(idDict.values())
     return f'{ids[0]}_{ids[1]}'
@@ -27,8 +26,6 @@ def readByMessageType(directory, messageType):
     return messagesRead
 
 # Advertisements
-
-
 def readSentAdvertisements(nodeDirectory):
     return readByMessageType(f'{nodeDirectory}/sent', "advertisement")
 
@@ -36,9 +33,8 @@ def readSentAdvertisements(nodeDirectory):
 def readReceivedAdvertisements(nodeDirectory):
     return readByMessageType(f'{nodeDirectory}/received', "advertisement")
 
+
 # Unadvertisements
-
-
 def readSentUnadvertisements(nodeDirectory):
     return readByMessageType(f'{nodeDirectory}/sent', "unadvertisement")
 
@@ -48,7 +44,6 @@ def readReceivedUnadvertisements(nodeDirectory):
 
 
 # Publications
-
 def readSentPublications(nodeDirectory):
     return readByMessageType(f'{nodeDirectory}/sent', "publication")
 
@@ -56,9 +51,8 @@ def readSentPublications(nodeDirectory):
 def readReceivedPublications(nodeDirectory):
     return readByMessageType(f'{nodeDirectory}/received', "publication")
 
+
 # Subscriptions
-
-
 def readSentSubscriptions(nodeDirectory):
     return readByMessageType(f'{nodeDirectory}/sent', "subscription")
 
@@ -77,8 +71,6 @@ def readReceivedUnsubscriptions(nodeDirectory):
 
 
 # Acks
-
-
 def readTimeoutACK(directory):
     directory = f'{directory}/received'
     retransIds = list()
@@ -96,18 +88,3 @@ def readTimeoutACK(directory):
                             retransIds.append(getIdMessage(message["content"]['ID']))
 
     return retransIds
-
-
-# def readSentACKS(nodeDirectory):
-
-#     acks = readAcks(f'{nodeDirectory}/sent')
-#     acksSent = list()
-#     for valueAcks in acks.values():
-#         acksSent += valueAcks
-
-#     return acksSent
-
-
-# def readReceivedACKS(nodeDirectory):
-
-#     return readAcks(nodeDirectory+"/received")

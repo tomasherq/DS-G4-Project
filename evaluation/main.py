@@ -4,26 +4,20 @@ from functions.checkSubscriptions import *
 from functions.checkPublications import *
 import statistics
 import json
-# Get retransmissions and timeouts from ACKs.
-
 
 def getSumOfField(dictionary, field):
     result = 0
-
     for nodeId in dictionary:
         if field in dictionary[nodeId]:
             if dictionary[nodeId][field] > 0:
                 result += dictionary[nodeId][field]
     result = round(result, 2)
 
-
     return result
 
 
 def getStandardDeviation(dictionary, field):
-
     results = list()
-
     for nodeId in dictionary:
         if field in dictionary[nodeId]:
             if isinstance(dictionary[nodeId][field], list):
@@ -35,9 +29,7 @@ def getStandardDeviation(dictionary, field):
 
 
 def getRunResult(RUNS_DIRECTORY):
-    # I think that the logic is hard to understand
     publisherNodes = ["13", "14"]
-
     subscriberNodes = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
 
     # Measure the traffic per node
@@ -62,13 +54,11 @@ def getRunResult(RUNS_DIRECTORY):
     receivedUnsubscriptions = {}
 
     for nodeId in os.listdir(RUNS_DIRECTORY):
-
         if "root" in nodeId:
             continue
         nodeDirectory = RUNS_DIRECTORY+'/'+nodeId
 
         if nodeId in publisherNodes:
-
             sentAdvertisements += readSentAdvertisements(nodeDirectory)
             receivedSubscriptions[nodeId] = readReceivedSubscriptions(nodeDirectory)
             receivedUnsubscriptions[nodeId] = readReceivedUnsubscriptions(nodeDirectory)
@@ -77,7 +67,6 @@ def getRunResult(RUNS_DIRECTORY):
             retransPublications += readTimeoutACK(nodeDirectory)
 
         elif nodeId in subscriberNodes:
-
             receivedPublications[nodeId] = readReceivedPublications(nodeDirectory)
             sentSubscriptions[nodeId] = readSentSubscriptions(nodeDirectory)
             sentUnsubscriptions[nodeId] = readSentUnsubscriptions(nodeDirectory)
@@ -103,6 +92,7 @@ def getRunResult(RUNS_DIRECTORY):
         sentPublications, potentialSubscriptions, unsubscriptionsSummary)
 
     subscribersEmpty = {}
+
     for node in subscriberNodes:
         subscribersEmpty[node] = {}
 
