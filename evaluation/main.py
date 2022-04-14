@@ -14,8 +14,8 @@ def getSumOfField(dictionary, field):
         if field in dictionary[nodeId]:
             if dictionary[nodeId][field] > 0:
                 result += dictionary[nodeId][field]
-
     result = round(result, 2)
+
 
     return result
 

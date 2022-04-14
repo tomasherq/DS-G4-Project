@@ -13,8 +13,8 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
   private val waitingForACK = mutable.Map[(String, (Int, Int)),Int]()
 
   protected var numberOfSimulations = 0
-  protected var simulationLimit = 2000
-  protected var guaranteeType = NONE
+  protected var simulationLimit = 1000
+  protected var guaranteeType = ACK
   protected var startDelayBaseline = false
 
   /**
@@ -130,7 +130,7 @@ class Client(override val ID: Int, val brokerID: Int, val mode: ClientType) exte
    * Simulate random  behaviour
    */
   private def simulateClientBehaviour(): Unit = {
-    val option = randomGenerator.nextInt(2500)
+    val option = randomGenerator.nextInt(2000)
 
     var simulationExecution = false
 
