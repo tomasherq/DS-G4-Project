@@ -1,6 +1,6 @@
 import os
 from functions.getSizeOfFiles import format_bytes
-from main import getRunResult, getSumOfField, getStandardDeviation
+from results import getRunResult, getSumOfField, getStandardDeviation
 import json
 
 option = "ack"
@@ -31,5 +31,5 @@ stdSummary["avg_traffic_sent"] = format_bytes(stdSummary["traffic_sent_bytes"]/l
 
 results = {"avg": avgSummary, "std": stdSummary}
 
-with open(f'avg_sum/{option}.json', 'w') as file_write:
+with open(f'accumulative_results/{option}.json', 'w') as file_write:
     file_write.write(json.dumps(results, indent=4))

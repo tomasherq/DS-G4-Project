@@ -3,7 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import json
 
-
 # Open the files of data
 with open("ack.json", "r") as file_read:
     results_ack = json.load(file_read)

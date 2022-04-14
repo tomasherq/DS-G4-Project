@@ -48,7 +48,5 @@ target/
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
-runs/
 experiments/evaluation/functions/__pycache__
-experiments/evaluation/results/
 experiments/evaluation/__pycache__
