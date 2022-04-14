@@ -50,3 +50,5 @@ target/
 hs_err_pid*
 runs/
 evaluation/functions/__pycache__
+evaluation/results/
+evaluation/__pycache__
